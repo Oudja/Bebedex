@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">BebeDex</string>
+    <string name="title_activity_bebe_detail">BebeDetailActivity</string>
+</resources>
