@@ -3,6 +3,8 @@ package com.oudja.bebedex
 
 import android.app.TimePickerDialog
 import android.content.Context
+import android.graphics.Insets.add
+import android.graphics.Paint
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -19,13 +21,16 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -38,22 +43,40 @@ import com.google.gson.reflect.TypeToken
 import com.oudja.bebedex.ui.theme.BebeDexTheme
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.util.Calendar
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
+import java.time.LocalDate
+import coil.ImageLoader
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.Coil
+
+
 
 class BebeDetailActivity : ComponentActivity() {
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val name = intent.getStringExtra("name") ?: "???"
+        val imageLoader = ImageLoader.Builder(this)
+            .components {
+                if (Build.VERSION.SDK_INT >= 28) {
+                    add(ImageDecoderDecoder.Factory())
+                } else {
+                    add(GifDecoder.Factory())
+                }
+            }
+            .build()
 
+        Coil.setImageLoader(imageLoader)
+
+        val name = intent.getStringExtra("name") ?: "???"
         setContent {
             BebeDexTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
@@ -63,6 +86,18 @@ class BebeDetailActivity : ComponentActivity() {
             }
         }
     }
+}
+
+@Composable
+fun AnimatedGif(modifier: Modifier = Modifier) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(R.drawable.bebe_gif) //
+            .crossfade(true)
+            .build(),
+        contentDescription = "Bébé qui baille",
+        modifier = modifier
+    )
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -84,9 +119,11 @@ fun AppNavigation(navController: NavHostController, name: String) {
     }
 }
 
+
 data class CroissanceData(val datetime: String, val taille: Float, val poids: Float)
 
 val croissanceList = mutableStateListOf<CroissanceData>()
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun saveGrowthData(context: Context, taille: Float, poids: Float) {
@@ -135,14 +172,15 @@ fun ProfilScreen(name: String, onNavigate: (String) -> Unit) {
     var isEditing by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.padding(24.dp)) {
-        Image(
-            painter = painterResource(id = R.drawable.bebe),
-            contentDescription = null,
+        AnimatedGif(
             modifier = Modifier
                 .size(128.dp)
-                .fillMaxWidth()
-                .wrapContentWidth(Alignment.CenterHorizontally)
+                .align(Alignment.CenterHorizontally)
         )
+
+
+
+
 
         Spacer(modifier = Modifier.height(16.dp))
         Text("Nom : $name", style = MaterialTheme.typography.headlineSmall)
@@ -294,7 +332,7 @@ fun LineChart(data: List<Pair<String, Float>>, color: Color, unit: String, align
 
         val maxY = data.maxOf { it.second }
         val minY = data.minOf { it.second }
-        val labelPaint = android.graphics.Paint().apply {
+        val labelPaint = Paint().apply {
             this.color = android.graphics.Color.DKGRAY
             textSize = 24f
         }
@@ -563,10 +601,10 @@ fun StatRadar(stats: BebeStats, modifier: Modifier = Modifier) {
                     label,
                     x,
                     y,
-                    android.graphics.Paint().apply {
+                    Paint().apply {
                         textSize = 28f
                         color = android.graphics.Color.DKGRAY
-                        textAlign = android.graphics.Paint.Align.CENTER
+                        textAlign = Paint.Align.CENTER
                     }
                 )
             }
