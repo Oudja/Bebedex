@@ -14,11 +14,15 @@
         android:theme="@style/Theme.BebeDex"
         tools:targetApi="31">
         <activity
+            android:name=".BiberonTracker"
+            android:exported="false"
+            android:label="@string/title_activity_biberon_tracker"
+            android:theme="@style/Theme.BebeDex" />
+        <activity
             android:name=".LevelUpScreen"
             android:exported="false"
             android:label="@string/title_activity_level_up_screen"
-            android:theme="@style/Theme.BebeDex" />
-        <!-- Écran d'introduction -->
+            android:theme="@style/Theme.BebeDex" /> <!-- Écran d'introduction -->
         <activity
             android:name=".IntroActivity"
             android:exported="true"

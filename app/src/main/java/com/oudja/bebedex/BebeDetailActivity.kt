@@ -82,6 +82,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import com.example.bebedex.biberon.BiberonScreen
 
 
 class BebeDetailActivity : ComponentActivity() {
@@ -141,6 +142,10 @@ fun AppNavigation(navController: NavHostController, name: String) {
         composable("courbe") {
             CourbeScreen(onBack = { navController.popBackStack() })
         }
+        composable("biberons") {
+            BiberonScreen(onBack = { navController.popBackStack() })
+        }
+
     }
 }
 
@@ -345,6 +350,11 @@ fun ProfilScreen(name: String, onNavigate: (String) -> Unit) {
         Button(onClick = { onNavigate("courbe") }, modifier = Modifier.fillMaxWidth()) {
             Text("Courbes de croissance")
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { onNavigate("biberons") }, modifier = Modifier.fillMaxWidth()) {
+            Text("Suivi des biberons")
+        }
+
     }
 }
 
