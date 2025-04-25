@@ -10,8 +10,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -21,6 +24,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -56,7 +60,28 @@ import coil.decode.ImageDecoderDecoder
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.Coil
-
+import java.time.Period
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.runtime.key
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 
 
 class BebeDetailActivity : ComponentActivity() {
@@ -158,6 +183,40 @@ fun loadGrowthHistory(context: Context) {
     croissanceList.addAll(list)
 }
 
+@Composable
+fun XpBar(xp: Int, maxXp: Int = 100, modifier: Modifier = Modifier) {
+    val progress = (xp.toFloat() / maxXp).coerceIn(0f, 1f)
+
+    // ⚡ Animation de la progression
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(
+            durationMillis = 800,
+            easing = FastOutSlowInEasing
+        ),
+        label = "xp-animation"
+    )
+
+    val backgroundColor = Color(0xFFE0E0E0)
+    val progressColor = Color(0xFFEE8130) // orange XP style Pokémon
+
+    Box(
+        modifier
+            .height(16.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
+    ) {
+        Box(
+            Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(animatedProgress)
+                .clip(RoundedCornerShape(8.dp))
+                .background(progressColor)
+        )
+    }
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfilScreen(name: String, onNavigate: (String) -> Unit) {
@@ -169,7 +228,37 @@ fun ProfilScreen(name: String, onNavigate: (String) -> Unit) {
     var birthTime by remember { mutableStateOf("12:00") }
     var taille by remember { mutableStateOf(tailleInit) }
     var poids by remember { mutableStateOf(poidsInit) }
+    var tailleText by remember { mutableStateOf(tailleInit.toString()) }
+    var poidsText by remember { mutableStateOf(poidsInit.toString()) }
     var isEditing by remember { mutableStateOf(false) }
+
+    var showLevelUpScreen by remember { mutableStateOf(false) }
+
+    // Calcul âge
+    val age = try {
+        val birth = LocalDate.parse(birthDate)
+        val today = LocalDate.now()
+        val period = Period.between(birth, today)
+        "${period.years} an(s), ${period.months} mois, ${period.days} jour(s)"
+    } catch (e: Exception) {
+        "Date invalide"
+    }
+
+    // Afficher écran Level Up si besoin
+    LaunchedEffect(level) {
+        val lastSeenLevel = loadLastSeenLevel(context)
+        if (level > lastSeenLevel) {
+            showLevelUpScreen = true
+            saveLastSeenLevel(context, level)
+        }
+    }
+
+    if (showLevelUpScreen) {
+        LevelUpScreen(oldLevel = level - 1, newLevel = level) {
+            showLevelUpScreen = false
+        }
+        return
+    }
 
     Column(modifier = Modifier.padding(24.dp)) {
         AnimatedGif(
@@ -178,22 +267,13 @@ fun ProfilScreen(name: String, onNavigate: (String) -> Unit) {
                 .align(Alignment.CenterHorizontally)
         )
 
-
-
-
-
         Spacer(modifier = Modifier.height(16.dp))
         Text("Nom : $name", style = MaterialTheme.typography.headlineSmall)
+        Text("Âge : $age", style = MaterialTheme.typography.bodyLarge)
         Text("Niveau : $level", style = MaterialTheme.typography.bodyLarge)
         Text("XP : $xp / 100", style = MaterialTheme.typography.bodyLarge)
 
-        LinearProgressIndicator(
-            progress = { xp / 100f },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .padding(top = 4.dp, bottom = 8.dp)
-        )
+        XpBar(xp = xp)
 
         if (isEditing) {
             OutlinedTextField(
@@ -211,19 +291,25 @@ fun ProfilScreen(name: String, onNavigate: (String) -> Unit) {
             )
 
             OutlinedTextField(
-                value = taille.toString(),
-                onValueChange = { taille = it.toFloatOrNull() ?: taille },
+                value = tailleText,
+                onValueChange = {
+                    tailleText = it
+                    taille = it.toFloatOrNull() ?: 0f
+                },
                 label = { Text("Taille (cm)") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
             )
 
             OutlinedTextField(
-                value = poids.toString(),
-                onValueChange = { poids = it.toFloatOrNull() ?: poids },
+                value = poidsText,
+                onValueChange = {
+                    poidsText = it
+                    poids = it.toFloatOrNull() ?: 0f
+                },
                 label = { Text("Poids (kg)") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -237,8 +323,8 @@ fun ProfilScreen(name: String, onNavigate: (String) -> Unit) {
         } else {
             Text("Date de naissance : $birthDate")
             Text("Heure de naissance : $birthTime")
-            Text("Taille : ${taille} cm")
-            Text("Poids : ${poids} kg")
+            Text("Taille : ${tailleText} cm")
+            Text("Poids : ${poidsText} kg")
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = { isEditing = true }, modifier = Modifier.fillMaxWidth()) {
                 Text("Modifier les informations")
@@ -246,24 +332,32 @@ fun ProfilScreen(name: String, onNavigate: (String) -> Unit) {
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
         Button(onClick = { onNavigate("stats") }, modifier = Modifier.fillMaxWidth()) {
             Text("Voir les statistiques")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
         Button(onClick = { onNavigate("competences") }, modifier = Modifier.fillMaxWidth()) {
             Text("Voir les compétences")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
         Button(onClick = { onNavigate("courbe") }, modifier = Modifier.fillMaxWidth()) {
             Text("Courbes de croissance")
         }
     }
 }
+
+fun saveLastSeenLevel(context: Context, level: Int) {
+    val prefs = context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE)
+    prefs.edit().putInt("last_seen_level", level).apply()
+}
+
+fun loadLastSeenLevel(context: Context): Int {
+    val prefs = context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE)
+    return prefs.getInt("last_seen_level", 1)
+}
+
 
 @Composable
 fun CourbeScreen(onBack: () -> Unit) {
@@ -372,22 +466,26 @@ fun StatScreen(onBack: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompetencesScreen(onBack: () -> Unit) {
     val context = LocalContext.current
-    val competences = remember {
+    val allCompetences = remember {
         mutableStateListOf<Competence>().apply {
             val saved = loadSavedCompetences(context)
-            if (saved.isNotEmpty()) addAll(saved) else addAll(loadCompetencesFromCSV(context))
+            if (saved.isNotEmpty()) addAll(saved)
+            else addAll(loadCompetencesFromCSV(context))
         }
     }
+
     val (initialLevel, initialXp) = loadProgress(context)
     var level by remember { mutableStateOf(initialLevel) }
     var experience by remember { mutableStateOf(initialXp) }
 
-    LaunchedEffect(competences) {
-        snapshotFlow { competences.map { it.nom to it.acquise } }.collect {
-            saveCompetences(context, competences)
+    // Enregistrement automatique
+    LaunchedEffect(allCompetences) {
+        snapshotFlow { allCompetences.map { it.nom to it.acquise } }.collect {
+            saveCompetences(context, allCompetences)
             saveProgress(context, level, experience)
         }
     }
@@ -396,12 +494,13 @@ fun CompetencesScreen(onBack: () -> Unit) {
         Button(onClick = onBack) {
             Text("⬅ Retour")
         }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         CompetenceSelector(
-            competences = competences,
-            onCompetenceAdded = { newName ->
-                competences.add(Competence(newName, true))
+            competences = allCompetences,
+            onCompetenceAdded = { nom ->
+                allCompetences.add(Competence(nom = nom, acquise = true))
                 experience += 10
                 if (experience >= 100) {
                     experience -= 100
@@ -420,28 +519,29 @@ fun CompetencesScreen(onBack: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            resetProgress(context, competences)
+            resetProgress(context, allCompetences)
             level = 1
             experience = 0
         }) {
             Text("Réinitialiser")
         }
-
-        val checked = competences.filter { it.acquise }
-        if (checked.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("✅ Compétences acquises :", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            checked.forEach {
-                Text("• ${it.nom}", style = MaterialTheme.typography.bodyMedium)
-            }
-        }
     }
 }
 
+
+
+
+
 // Les fonctions utilitaires, composants et data classes à inclure :
 data class BebeStats(val eveil: Float, val robustesse: Float, val beaute: Float, val grace: Float, val sociabilite: Float)
-data class Competence(val nom: String, var acquise: Boolean = false)
+data class Competence(
+    val nom: String,
+    var acquise: Boolean = false,
+)
+
+
+
+
 
 fun saveProgress(context: Context, level: Int, xp: Int) {
     val prefs = context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE)
@@ -476,18 +576,22 @@ fun loadSavedCompetences(context: Context): List<Competence> {
 
 fun loadCompetencesFromCSV(context: Context): List<Competence> {
     val competences = mutableListOf<Competence>()
-    try {
-        val inputStream = context.resources.openRawResource(R.raw.competences)
-        val reader = BufferedReader(InputStreamReader(inputStream))
-        reader.forEachLine { line ->
-            val nom = line.trim()
-            if (nom.isNotEmpty()) {
-                competences.add(Competence(nom))
+    val inputStream = context.resources.openRawResource(R.raw.competences)
+    val reader = BufferedReader(InputStreamReader(inputStream))
+
+    reader.useLines { lines ->
+        lines.forEach { line ->
+            val parts = line.split(";")
+            if (parts.size >= 1) {
+                val nom = parts[0].trim()
+
+                if (nom.isNotEmpty()) {
+                    competences.add(Competence(nom = nom)) // Ajout uniquement du nom sans thème
+                }
             }
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
+
     return competences
 }
 
@@ -499,6 +603,7 @@ fun resetProgress(context: Context, competences: SnapshotStateList<Competence>) 
     saveProgress(context, 1, 0)
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CompetenceSelector(
     competences: SnapshotStateList<Competence>,
@@ -508,7 +613,7 @@ fun CompetenceSelector(
     var searchText by remember { mutableStateOf("") }
     val filtered = competences.filter {
         !it.acquise && it.nom.contains(searchText, ignoreCase = true)
-    }
+    }.sortedBy { it.nom }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
@@ -516,45 +621,82 @@ fun CompetenceSelector(
             onValueChange = { searchText = it },
             label = { Text("Rechercher ou ajouter...") },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done,
+                keyboardType = KeyboardType.Text
+            ),
             keyboardActions = KeyboardActions(onDone = {
                 val trimmed = searchText.trim()
-                if (trimmed.isNotEmpty() && competences.none { it.nom.equals(trimmed, true) }) {
+                if (trimmed.isNotEmpty() && competences.none { it.nom.equals(trimmed, ignoreCase = true) }) {
                     onCompetenceAdded(trimmed)
                     searchText = ""
                 }
             })
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        if (searchText.isNotEmpty()) {
-            Text("🔍 Résultats de recherche :", style = MaterialTheme.typography.labelLarge)
-            Spacer(modifier = Modifier.height(4.dp))
-            filtered.forEach { competence ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                ) {
-                    Checkbox(
-                        checked = competence.acquise,
-                        onCheckedChange = { checked ->
-                            val index = competences.indexOf(competence)
-                            competences[index] = competence.copy(acquise = checked)
-                            if (checked) {
-                                onGainXP()
+        if (searchText.isNotBlank()) {
+            Text(
+                "Suggestions :", style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                filtered.take(5).forEach { competence ->
+                    Surface(
+                        tonalElevation = 2.dp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val index = competences.indexOf(competence)
+                                competences[index] = competence.copy(acquise = true)
                                 searchText = ""
+                                onGainXP()
                             }
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                competence.nom,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                fontWeight = FontWeight.Medium
+                            )
                         }
+                    }
+                }
+            }
+        }
+
+        val selected = competences.filter { it.acquise }
+        if (selected.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("✅ Compétences acquises :", style = MaterialTheme.typography.labelMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                selected.forEach { comp ->
+                    AssistChip(
+                        onClick = {
+                            val index = competences.indexOf(comp)
+                            competences[index] = comp.copy(acquise = false)
+                        },
+                        label = { Text(comp.nom) },
+                        colors = AssistChipDefaults.assistChipColors(containerColor = Color(0xFFB2DFDB))
                     )
-                    Text(competence.nom)
                 }
             }
         }
     }
 }
+
+
+
 
 @Composable
 fun StatRadar(stats: BebeStats, modifier: Modifier = Modifier) {

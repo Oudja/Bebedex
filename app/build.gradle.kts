@@ -58,6 +58,7 @@ dependencies {
     implementation("io.coil-kt:coil-gif:2.4.0")
     implementation("io.coil-kt:coil-base:2.4.0")
     implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.compose.material3:material3:1.2.0")
     implementation(libs.places)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -13,15 +13,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BebeDex"
         tools:targetApi="31">
-
+        <activity
+            android:name=".LevelUpScreen"
+            android:exported="false"
+            android:label="@string/title_activity_level_up_screen"
+            android:theme="@style/Theme.BebeDex" />
         <!-- Écran d'introduction -->
         <activity
             android:name=".IntroActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.BebeDex" />
-
-        <!-- Écran de démarrage (Splash) = Launcher -->
+            android:theme="@style/Theme.BebeDex" /> <!-- Écran de démarrage (Splash) = Launcher -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
@@ -29,23 +31,20 @@
             android:theme="@style/Theme.BebeDex">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Écran de détail d’un bébé -->
+        </activity> <!-- Écran de détail d’un bébé -->
         <activity
             android:name=".BebeDetailActivity"
             android:exported="false"
             android:label="@string/title_activity_bebe_detail"
-            android:theme="@style/Theme.BebeDex" />
-
-        <!-- Écran principal : liste des bébés -->
+            android:theme="@style/Theme.BebeDex" /> <!-- Écran principal : liste des bébés -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.BebeDex" />
-
     </application>
+
 </manifest>

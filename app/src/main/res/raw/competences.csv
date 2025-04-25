@@ -1,99 +1,148 @@
-competence,xp
-Tient sa tête,5
-Sourire social,5
-Suit des objets des yeux,10
-Gazouille,5
-Émet des sons différents,10
-Attrape un objet volontairement,10
-Se retourne sur le ventre,10
-Se retourne sur le dos,10
-Soutient son poids avec les jambes,10
-Tient assis avec soutien,10
-Tient assis sans aide,10
-Saisit un objet avec précision,10
-Porte un objet à la bouche,10
-Change un objet de main,10
-Rampe,5
-Se déplace en roulant,10
-Fait bravo,5
-Tape dans ses mains,5
-Dit papa/maman,5
-Répond à son prénom,5
-Imite des sons,5
-Utilise des gestes simples,10
-Marche à quatre pattes,10
-Se lève avec appui,5
-Tient debout sans aide,10
-Fait au revoir de la main,10
-Pointe du doigt,5
-Marche en tenant un meuble,10
-Marche sans aide,5
-Dit quelques mots supplémentaires,10
-"Utilise un objet correctement (cuillère, brosse)",15
-Empile deux cubes,5
-Suit des instructions simples,10
-Reconnaît les objets familiers,10
-Fait des puzzles simples,10
-Associe objets et images,10
-Imite des actions,5
-Fait semblant (ex. nourrir poupée),10
-Dessine des traits simples,10
-Montre les parties du corps,10
-Boit dans une tasse,5
-Tente de s'habiller seul,10
-Réagit à des émotions,10
-Participe à des jeux simples,10
-Répond à son reflet dans un miroir,10
-Utilise une cuillère,5
-Grimpe sur des meubles,10
-Jette une balle,5
-Fait des pas de danse,10
-Imite des animaux,5
-Aide à ranger ses jouets,10
-Dessine des cercles,5
-Marche en arrière,5
-Monte les escaliers à quatre pattes,10
-Descend les escaliers avec aide,10
-Fait des phrases de 2 mots,10
-Montre ses préférences,10
-Exprime ses besoins de base,10
-Imite les adultes,5
-Joue avec d'autres enfants,10
-Saute sur place,5
-Utilise crayons ou craies,10
-Tourne les pages d'un livre,10
-Suit une histoire simple,10
-Commence à compter,5
-Range des objets par taille,10
-Connaît quelques couleurs,10
-Connaît quelques formes,10
-Fait rouler une voiture,10
-Construis une tour de 4 cubes,10
-Fait des puzzles de 2-3 pièces,10
-Imite des sons d'animaux,10
-Utilise « non » correctement,10
-Réclame de l'aide,5
-Suit une routine,5
-Utilise des pronoms,5
-Utilise des verbes d’action,10
-Exprime des émotions de base,10
-Participe à des comptines,10
-Saute d’un petit rebord,10
-Montre de l’affection,10
-Attend son tour,5
-Range un livre,5
-Choisit un jouet seul,10
-Utilise des jouets de manière créative,10
-Aide à se déshabiller,10
-Met ses chaussures,5
-S’essuie la bouche seul,10
-Tente de se brosser les dents,10
-Fait des bulles,5
-Fait des grimaces,5
-Se lave les mains avec aide,10
-Met un chapeau,5
-Réagit à la musique,5
-Danse en rythme,5
-Fait un puzzle en bois,10
-Identifie des objets sur commande,10
-Sait empiler 6 blocs,5
+competence,theme
+Tient sa tête,Motricité
+Sourire social,Relationnel / Social
+Suit des objets des yeux,Sensoriel / Éveil
+Gazouille,Langage
+Émet des sons différents,Langage
+Attrape un objet volontairement,Motricité
+Se retourne sur le ventre,Motricité
+Se retourne sur le dos,Motricité
+Soutient son poids avec les jambes,Motricité
+Tient assis avec soutien,Motricité
+Tient assis sans aide,Motricité
+Saisit un objet avec précision,Sensoriel / Éveil
+Porte un objet à la bouche,Sensoriel / Éveil
+Change un objet de main,Sensoriel / Éveil
+Rampe,Motricité
+Se déplace en roulant,Motricité
+Fait bravo,Sensoriel / Éveil
+Tape dans ses mains,Sensoriel / Éveil
+Dit papa/maman,Langage
+Répond à son prénom,Sensoriel / Éveil
+Imite des sons,Langage
+Utilise des gestes simples,Sensoriel / Éveil
+Marche à quatre pattes,Motricité
+Se lève avec appui,Sensoriel / Éveil
+Tient debout sans aide,Motricité
+Fait au revoir de la main,Sensoriel / Éveil
+Pointe du doigt,Sensoriel / Éveil
+Marche en tenant un meuble,Motricité
+Marche sans aide,Motricité
+Dit quelques mots supplémentaires,Langage
+"Utilise un objet correctement (cuillère, brosse)",Sensoriel / Éveil
+Empile deux cubes,Jeu / Manipulation
+Suit des instructions simples,Sensoriel / Éveil
+Reconnaît les objets familiers,Sensoriel / Éveil
+Fait des puzzles simples,Jeu / Manipulation
+Associe objets et images,Sensoriel / Éveil
+Imite des actions,Sensoriel / Éveil
+Fait semblant (ex. nourrir poupée),Sensoriel / Éveil
+Dessine des traits simples,Sensoriel / Éveil
+Montre les parties du corps,Jeu / Manipulation
+Boit dans une tasse,Autonomie
+Tente de s'habiller seul,Autonomie
+Réagit à des émotions,Sensoriel / Éveil
+Participe à des jeux simples,Sensoriel / Éveil
+Répond à son reflet dans un miroir,Sensoriel / Éveil
+Utilise une cuillère,Sensoriel / Éveil
+Grimpe sur des meubles,Motricité
+Jette une balle,Sensoriel / Éveil
+Fait des pas de danse,Sensoriel / Éveil
+Imite des animaux,Sensoriel / Éveil
+Aide à ranger ses jouets,Jeu / Manipulation
+Dessine des cercles,Sensoriel / Éveil
+Marche en arrière,Motricité
+Monte les escaliers à quatre pattes,Sensoriel / Éveil
+Descend les escaliers avec aide,Sensoriel / Éveil
+Fait des phrases de 2 mots,Langage
+Montre ses préférences,Jeu / Manipulation
+Exprime ses besoins de base,Sensoriel / Éveil
+Imite les adultes,Sensoriel / Éveil
+Joue avec d'autres enfants,Jeu / Manipulation
+Saute sur place,Sensoriel / Éveil
+Utilise crayons ou craies,Sensoriel / Éveil
+Tourne les pages d'un livre,Sensoriel / Éveil
+Suit une histoire simple,Sensoriel / Éveil
+Commence à compter,Sensoriel / Éveil
+Range des objets par taille,Sensoriel / Éveil
+Connaît quelques couleurs,Sensoriel / Éveil
+Connaît quelques formes,Sensoriel / Éveil
+Fait rouler une voiture,Sensoriel / Éveil
+Construis une tour de 4 cubes,Jeu / Manipulation
+Fait des puzzles de 2-3 pièces,Jeu / Manipulation
+Imite des sons d'animaux,Langage
+Utilise « non » correctement,Sensoriel / Éveil
+Réclame de l'aide,Sensoriel / Éveil
+Suit une routine,Sensoriel / Éveil
+Utilise des pronoms,Sensoriel / Éveil
+Utilise des verbes d’action,Sensoriel / Éveil
+Exprime des émotions de base,Relationnel / Social
+Participe à des comptines,Sensoriel / Éveil
+Saute d’un petit rebord,Sensoriel / Éveil
+Montre de l’affection,Jeu / Manipulation
+Attend son tour,Sensoriel / Éveil
+Range un livre,Sensoriel / Éveil
+Choisit un jouet seul,Jeu / Manipulation
+Utilise des jouets de manière créative,Jeu / Manipulation
+Aide à se déshabiller,Sensoriel / Éveil
+Met ses chaussures,Sensoriel / Éveil
+S’essuie la bouche seul,Sensoriel / Éveil
+Tente de se brosser les dents,Sensoriel / Éveil
+Fait des bulles,Sensoriel / Éveil
+Fait des grimaces,Sensoriel / Éveil
+Se lave les mains avec aide,Sensoriel / Éveil
+Met un chapeau,Sensoriel / Éveil
+Réagit à la musique,Sensoriel / Éveil
+Danse en rythme,Sensoriel / Éveil
+Fait un puzzle en bois,Jeu / Manipulation
+Identifie des objets sur commande,Sensoriel / Éveil
+Sait empiler 6 blocs,Jeu / Manipulation
+Tient un crayon,Motricité fine
+Fait des bulles,Jeu / Manipulation
+Reconnaît son prénom,Langage
+Empile 4 cubes,Motricité fine
+Salue avec la main,Relationnel / Social
+Suit une consigne simple,Langage
+Imite des gestes,Relationnel / Social
+Fait rouler une voiture,Jeu / Manipulation
+Montre des parties de son corps,Langage
+Rit aux éclats,Relationnel / Social
+Dessine un cercle,Motricité fine
+Boit dans une tasse,Autonomie
+Met ses chaussures,Autonomie
+Monte les escaliers,Motricité
+Fait un puzzle de 3 pièces,Jeu / Manipulation
+Reconnaît des animaux,Langage
+Se mouche seul,Autonomie
+Joue à cache-cache,Relationnel / Social
+Saute avec les deux pieds,Motricité
+Colorie sans dépasser,Motricité fine
+Range ses jouets,Autonomie
+Chante une chanson,Langage
+Nommer des couleurs,Langage
+Fait des grimaces,Jeu / Manipulation
+Fait semblant de cuisiner,Jeu / Manipulation
+Fait des tours de cubes,Motricité fine
+Utilise des ciseaux,Motricité fine
+Se lave les mains seul,Autonomie
+S'habille avec aide,Autonomie
+Imite les sons des animaux,Langage
+Participe à une histoire,Langage
+Montre ses émotions,Relationnel / Social
+Cherche un objet caché,Sensoriel / Éveil
+Ouvre une boîte,Motricité fine
+Classe des objets par taille,Jeu / Manipulation
+Fait une tour de 6 cubes,Motricité fine
+Utilise un stylo,Motricité fine
+Écoute une histoire,Sensoriel / Éveil
+Tourne les pages d’un livre,Motricité fine
+Réagit à son prénom,Sensoriel / Éveil
+Essuie sa bouche,Autonomie
+Met son manteau,Autonomie
+Donne un objet sur demande,Langage
+Fait un bisou,Relationnel / Social
+Range un livre,Autonomie
+Tire une chaise,Motricité
+Gribouille sur une feuille,Motricité fine
+Souffle une bougie,Sensoriel / Éveil
+Fait bravo avec ses mains,Relationnel / Social
