@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.oudja.bebedex">
 
     <application
         android:allowBackup="true"
@@ -12,22 +13,39 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BebeDex"
         tools:targetApi="31">
+
+        <!-- Écran d'introduction -->
         <activity
-            android:name=".BebeDetailActivity"
-            android:exported="false"
-            android:label="@string/title_activity_bebe_detail"
+            android:name=".IntroActivity"
+            android:exported="true"
+            android:label="@string/app_name"
             android:theme="@style/Theme.BebeDex" />
+
+        <!-- Écran de démarrage (Splash) = Launcher -->
         <activity
-            android:name=".MainActivity"
+            android:name=".SplashActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.BebeDex">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <!-- Écran de détail d’un bébé -->
+        <activity
+            android:name=".BebeDetailActivity"
+            android:exported="false"
+            android:label="@string/title_activity_bebe_detail"
+            android:theme="@style/Theme.BebeDex" />
+
+        <!-- Écran principal : liste des bébés -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.BebeDex" />
+
+    </application>
 </manifest>
