@@ -6,18 +6,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.*
-import androidx.compose.ui.draw.scale
 import com.oudja.bebedex.ui.theme.BebeDexTheme
 import androidx.core.app.ActivityOptionsCompat
-import androidx.core.util.Pair
 
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,13 +39,14 @@ class SplashActivity : ComponentActivity() {
                     val intent = Intent(this, nextActivity).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     }
+
                     val options = ActivityOptionsCompat.makeCustomAnimation(
                         this,
                         R.anim.zoom_enter,
                         R.anim.zoom_exit
                     )
                     startActivity(intent, options.toBundle())
-                    finish() // ← Important pour éviter de revenir à Splash
+                    finish()
                 })
             }
         }
@@ -52,7 +54,6 @@ class SplashActivity : ComponentActivity() {
 
     @Composable
     fun SplashScreen(onStart: () -> Unit) {
-        // Animation rebondissante
         val infiniteTransition = rememberInfiniteTransition()
         val scale by infiniteTransition.animateFloat(
             initialValue = 1f,
@@ -66,18 +67,18 @@ class SplashActivity : ComponentActivity() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black)
                 .clickable { onStart() }
         ) {
-            // Fond
+            // ✅ Image fullscreen exacte
             Image(
                 painter = painterResource(id = R.drawable.splash_screen),
                 contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentScale = ContentScale.Fit // ou .FillHeight selon ce que tu préfères
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds // image à la taille exacte de l'écran
             )
 
-            // Texte "Appuyer pour commencer" animé
+            // ✅ Texte animé "Appuyer pour commencer"
             Image(
                 painter = painterResource(id = R.drawable.appuyer_pour_commencer_bleu),
                 contentDescription = "Appuyer pour commencer",

@@ -55,6 +55,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation("androidx.compose.material3:material3:1.3.2")
     implementation("androidx.compose.material3:material3:1.2.0")
+    implementation("androidx.compose.ui:ui:...")
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.5.0") // adapte à ta version
+    implementation ("androidx.compose.material3:material3:1.2.0")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.8.9")
