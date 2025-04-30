@@ -5,4 +5,8 @@
     <string name="title_activity_intro">IntroActivity</string>
     <string name="title_activity_level_up_screen">LevelUpScreen</string>
     <string name="title_activity_biberon_tracker">BiberonTracker</string>
+    <string name="title_activity_baby_storage">BabyStorage</string>
+    <string name="title_activity_bebe_database">BebeDatabase</string>
+    <string name="title_activity_bebe_entity">BebeEntity</string>
+    <string name="title_activity_bebe_dao">BebeDao</string>
 </resources>

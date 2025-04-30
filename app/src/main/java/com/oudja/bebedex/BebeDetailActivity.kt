@@ -83,6 +83,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import com.example.bebedex.biberon.BiberonScreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 
 
 class BebeDetailActivity : ComponentActivity() {
@@ -103,11 +107,13 @@ class BebeDetailActivity : ComponentActivity() {
         Coil.setImageLoader(imageLoader)
 
         val name = intent.getStringExtra("name") ?: "???"
+        val level = intent.getIntExtra("level", 1)
+        val xp = intent.getIntExtra("xp", 0)
         setContent {
             BebeDexTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
-                    AppNavigation(navController, name)
+                    AppNavigation(navController, name = name,level = level,  xp = xp)
                 }
             }
         }
@@ -128,16 +134,16 @@ fun AnimatedGif(modifier: Modifier = Modifier) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppNavigation(navController: NavHostController, name: String) {
+fun AppNavigation(navController: NavHostController, name: String, level: Int, xp: Int) {
     NavHost(navController = navController, startDestination = "profil") {
         composable("profil") {
-            ProfilScreen(name = name, onNavigate = { navController.navigate(it) })
+            ProfilScreen(name = name, initialLevel = level, initialXp = xp, onNavigate = { navController.navigate(it) })
         }
         composable("stats") {
             StatScreen(onBack = { navController.popBackStack() })
         }
         composable("competences") {
-            CompetencesScreen(onBack = { navController.popBackStack() })
+            CompetencesScreen(name = name, onBack = { navController.popBackStack() })
         }
         composable("courbe") {
             CourbeScreen(onBack = { navController.popBackStack() })
@@ -224,9 +230,19 @@ fun XpBar(xp: Int, maxXp: Int = 100, modifier: Modifier = Modifier) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ProfilScreen(name: String, onNavigate: (String) -> Unit) {
+fun ProfilScreen(name: String, initialLevel: Int, initialXp: Int, onNavigate: (String) -> Unit) {
     val context = LocalContext.current
-    val (level, xp) = loadProgress(context)
+    val db = BebeDatabase.getDatabase(context)
+    val bebeDao = db.bebeDao()
+    val bebe = remember { mutableStateOf<BebeEntity?>(null) }
+
+    LaunchedEffect(Unit) {
+        bebe.value = bebeDao.getByName(name)
+    }
+
+    val level = bebe.value?.level ?: 1
+    val xp = bebe.value?.xp ?: 0
+
     val (tailleInit, poidsInit) = loadGrowthData(context)
 
     var birthDate by remember { mutableStateOf(LocalDate.now().toString()) }
@@ -478,25 +494,21 @@ fun StatScreen(onBack: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CompetencesScreen(onBack: () -> Unit) {
+fun CompetencesScreen(name: String, onBack: () -> Unit) {
     val context = LocalContext.current
+    val db = BebeDatabase.getDatabase(context)
+    val bebeDao = db.bebeDao()
+    val bebe = remember { mutableStateOf<BebeEntity?>(null) }
+
+    LaunchedEffect(Unit) {
+        bebe.value = bebeDao.getByName(name)
+    }
+
     val allCompetences = remember {
         mutableStateListOf<Competence>().apply {
             val saved = loadSavedCompetences(context)
             if (saved.isNotEmpty()) addAll(saved)
             else addAll(loadCompetencesFromCSV(context))
-        }
-    }
-
-    val (initialLevel, initialXp) = loadProgress(context)
-    var level by remember { mutableStateOf(initialLevel) }
-    var experience by remember { mutableStateOf(initialXp) }
-
-    // Enregistrement automatique
-    LaunchedEffect(allCompetences) {
-        snapshotFlow { allCompetences.map { it.nom to it.acquise } }.collect {
-            saveCompetences(context, allCompetences)
-            saveProgress(context, level, experience)
         }
     }
 
@@ -511,17 +523,31 @@ fun CompetencesScreen(onBack: () -> Unit) {
             competences = allCompetences,
             onCompetenceAdded = { nom ->
                 allCompetences.add(Competence(nom = nom, acquise = true))
-                experience += 10
-                if (experience >= 100) {
-                    experience -= 100
-                    level++
+                CoroutineScope(Dispatchers.IO).launch {
+                    bebe.value?.let {
+                        val newXp = it.xp + 10
+                        val newLevel = if (newXp >= 100) it.level + 1 else it.level
+                        val updated = it.copy(
+                            xp = if (newXp >= 100) newXp - 100 else newXp,
+                            level = newLevel
+                        )
+                        bebeDao.update(updated)
+                        bebe.value = updated
+                    }
                 }
             },
             onGainXP = {
-                experience += 10
-                if (experience >= 100) {
-                    experience -= 100
-                    level++
+                CoroutineScope(Dispatchers.IO).launch {
+                    bebe.value?.let {
+                        val newXp = it.xp + 10
+                        val newLevel = if (newXp >= 100) it.level + 1 else it.level
+                        val updated = it.copy(
+                            xp = if (newXp >= 100) newXp - 100 else newXp,
+                            level = newLevel
+                        )
+                        bebeDao.update(updated)
+                        bebe.value = updated
+                    }
                 }
             }
         )
@@ -530,13 +556,19 @@ fun CompetencesScreen(onBack: () -> Unit) {
 
         Button(onClick = {
             resetProgress(context, allCompetences)
-            level = 1
-            experience = 0
+            CoroutineScope(Dispatchers.IO).launch {
+                bebe.value?.let {
+                    val reset = it.copy(level = 1, xp = 0)
+                    bebeDao.update(reset)
+                    bebe.value = reset
+                }
+            }
         }) {
             Text("Réinitialiser")
         }
     }
 }
+
 
 
 

@@ -19,6 +19,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.oudja.bebedex.ui.theme.BebeDexTheme
 import androidx.core.app.ActivityOptionsCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
 
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,26 +32,32 @@ class SplashActivity : ComponentActivity() {
         setContent {
             BebeDexTheme {
                 SplashScreen(onStart = {
-                    val prefs = getSharedPreferences("BebeDex", MODE_PRIVATE)
-                    val babyName = prefs.getString("baby_name", null)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val appContext = applicationContext
+                        val db = BebeDatabase.getDatabase(appContext)
+                        val bebeDao = db.bebeDao()
+                        val babies = bebeDao.getAll()
 
-                    val nextActivity = if (babyName.isNullOrBlank()) {
-                        IntroActivity::class.java
-                    } else {
-                        MainActivity::class.java
+                        val nextActivity = if (babies.isEmpty()) {
+                            IntroActivity::class.java
+                        } else {
+                            MainActivity::class.java
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            val intent = Intent(this@SplashActivity, nextActivity).apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            }
+
+                            val options = ActivityOptionsCompat.makeCustomAnimation(
+                                this@SplashActivity,
+                                R.anim.zoom_enter,
+                                R.anim.zoom_exit
+                            )
+                            startActivity(intent, options.toBundle())
+                            finish()
+                        }
                     }
-
-                    val intent = Intent(this, nextActivity).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    }
-
-                    val options = ActivityOptionsCompat.makeCustomAnimation(
-                        this,
-                        R.anim.zoom_enter,
-                        R.anim.zoom_exit
-                    )
-                    startActivity(intent, options.toBundle())
-                    finish()
                 })
             }
         }

@@ -35,10 +35,19 @@ import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import com.oudja.bebedex.ui.theme.BebeDexTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
 
 class IntroActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val db = BebeDatabase.getDatabase(this)
+        val bebeDao = db.bebeDao()
+
+
         setContent {
             BebeDexTheme {
                 IntroScreen(
@@ -76,19 +85,16 @@ fun IntroScreen(onFinish: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .clickable(enabled = isClickable) {
-                if (step < 3) step++
-                else {
-                    val options = ActivityOptionsCompat.makeCustomAnimation(
-                        context,
-                        R.anim.zoom_enter,
-                        R.anim.zoom_exit
-                    )
-                    val intent = Intent(context, MainActivity::class.java)
-                    context.startActivity(intent, options.toBundle())
-                    onFinish()
+                if (step < 3) {
+                    step++
+                } else {
+                    // Marquer comme terminé, pour que MainActivity sache qu’un bébé a été ajouté
+                    (context as? ComponentActivity)?.setResult(ComponentActivity.RESULT_OK)
+                    (context as? ComponentActivity)?.finish()
                 }
             }
-    ) {
+    )
+ {
         Image(
             painter = painterResource(id = R.drawable.hopital_fond),
             contentDescription = "Fond hôpital",
@@ -178,8 +184,22 @@ fun IntroScreen(onFinish: () -> Unit) {
 
                             Button(onClick = {
                                 if (name.isNotBlank()) {
-                                    context.saveBabyData(name, gender ?: "garcon")
-                                    step = 3
+                                    val db = BebeDatabase.getDatabase(context)
+                                    val bebeDao = db.bebeDao()
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        bebeDao.insert(
+                                            BebeEntity(
+                                                name = name,
+                                                gender = gender ?: "garcon",
+                                                level = 1,
+                                                hp = 100,
+                                                xp = 0
+                                            )
+                                        )
+                                        withContext(Dispatchers.Main) {
+                                            step = 3
+                                        }
+                                    }
                                 }
                             }) {
                                 Text("Valider", fontFamily = pixelFont)
@@ -257,13 +277,4 @@ fun DialoguePanel(content: @Composable () -> Unit) {
     }
 }
 
-fun Context.saveBabyData(name: String, gender: String) {
-    val prefs = getSharedPreferences("BebeDex", Context.MODE_PRIVATE)
-    prefs.edit().apply {
-        putString("baby_name", name)
-        putString("baby_gender", gender)
-        putInt("baby_level", 1)
-        putInt("baby_hp", 100)
-        apply()
-    }
-}
+
