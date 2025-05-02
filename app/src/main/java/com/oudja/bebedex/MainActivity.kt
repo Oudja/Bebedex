@@ -2,6 +2,7 @@ package com.oudja.bebedex
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -31,12 +32,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.*
-
+import java.time.LocalDate
+import java.time.Period
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 
 class MainActivity : ComponentActivity() {
     private val babies = mutableStateListOf<BebeEntity>()
     private lateinit var bebeDao: BebeDao
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -44,8 +52,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             BebeDexTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFFFDF6E3))
                 ) {
                     val context = LocalContext.current
                     val db = remember { BebeDatabase.getDatabase(context) }
@@ -112,7 +121,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(8.dp)
+                                    .padding(8.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF607D8B),
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(20.dp)
                             ) {
                                 Text("Réinitialiser")
                             }
@@ -136,7 +150,8 @@ class MainActivity : ComponentActivity() {
                                                     level = babies[0].level,
                                                     hp = babies[0].hp,
                                                     gender = babies[0].gender,
-                                                    xp = babies[0].xp
+                                                    xp = babies[0].xp,
+                                                    dateNaissance = babies[0].dateNaissance
                                                 ),
                                                 big = true
                                             )
@@ -160,7 +175,8 @@ class MainActivity : ComponentActivity() {
                                                         level = bebe.level,
                                                         hp = bebe.hp,
                                                         gender = bebe.gender,
-                                                        xp = bebe.xp
+                                                        xp = bebe.xp,
+                                                        dateNaissance = bebe.dateNaissance
                                                     )
                                                 )
                                             }
@@ -188,7 +204,8 @@ class MainActivity : ComponentActivity() {
                                                                 level = bebe.level,
                                                                 hp = bebe.hp,
                                                                 gender = bebe.gender,
-                                                                xp = bebe.xp
+                                                                xp = bebe.xp,
+                                                                dateNaissance = bebe.dateNaissance
                                                             )
                                                         )
                                                     }
@@ -215,7 +232,8 @@ class MainActivity : ComponentActivity() {
                                                         level = bebe.level,
                                                         hp = bebe.hp,
                                                         gender = bebe.gender,
-                                                        xp = bebe.xp
+                                                        xp = bebe.xp,
+                                                        dateNaissance = bebe.dateNaissance
                                                     ),
                                                     horizontal = true
                                                 )
@@ -253,9 +271,11 @@ data class BebeData(
     val level: Int,
     val hp: Int,
     val gender: String,
-    val xp: Int
+    val xp: Int,
+    val dateNaissance: String
 )
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BebeCard(bebe: BebeData, big: Boolean = false, horizontal: Boolean = false) {
     val context = LocalContext.current
@@ -265,110 +285,243 @@ fun BebeCard(bebe: BebeData, big: Boolean = false, horizontal: Boolean = false) 
 
     val imageRes = if (bebe.gender == "fille") R.drawable.bebe_fille_gif else R.drawable.bebe_gif
 
-    Card(
+    Box(
         modifier = Modifier
             .padding(8.dp)
-            .then(
-                when {
-                    big -> Modifier.fillMaxWidth(0.9f)
-                    horizontal -> Modifier.fillMaxWidth()
-                    else -> Modifier.width(160.dp)
-                }
-            )
-            .clickable {
-                val db = BebeDatabase.getDatabase(context)
-                CoroutineScope(Dispatchers.IO).launch {
-                    val bebeEntity = db.bebeDao().getByName(bebe.name)
-                    if (bebeEntity != null) {
-                        val intent = Intent(context, BebeDetailActivity::class.java).apply {
-                            putExtra("name", bebeEntity.name)
-                            putExtra("level", bebeEntity.level)
-                            putExtra("hp", bebeEntity.hp)
-                            putExtra("xp", bebeEntity.xp)
+            .background(Color.White, RoundedCornerShape(10.dp))
+            .padding(2.dp)
+    ) {
+        Card(
+            modifier = Modifier
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color(0xFF5DADE2), Color(0xFF2C3E50))
+                    ),
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .then(
+                    when {
+                        big -> Modifier.fillMaxWidth(0.9f)
+                        horizontal -> Modifier.fillMaxWidth()
+                        else -> Modifier.width(160.dp)
+                    }
+                )
+                .clickable {
+                    val db = BebeDatabase.getDatabase(context)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val bebeEntity = db.bebeDao().getByName(bebe.name)
+                        if (bebeEntity != null) {
+                            val intent = Intent(context, BebeDetailActivity::class.java).apply {
+                                putExtra("name", bebeEntity.name)
+                                putExtra("level", bebeEntity.level)
+                                putExtra("hp", bebeEntity.hp)
+                                putExtra("xp", bebeEntity.xp)
+                            }
+                            withContext(Dispatchers.Main) {
+                                context.startActivity(intent)
+                            }
                         }
-                        withContext(Dispatchers.Main) {
-                            context.startActivity(intent)
+                    }
+                },
+            shape = RoundedCornerShape(10.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        ) {
+            if (horizontal) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(imageRes)
+                            .decoderFactory(GifDecoder.Factory())
+                            .build(),
+                        contentDescription = "Bébé",
+                        imageLoader = imageLoader,
+                        modifier = Modifier.size(80.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        val age = calculerAgeHumain(bebe.dateNaissance)
+
+                        Text(
+                            "${bebe.name.uppercase()}, $age",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                        Text(
+                            "Niveau : ${bebe.level}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+
+                        LinearProgressIndicator(
+                            progress = { bebe.hp / 100f },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp),
+                            color = Color(0xFF2ECC71)
+                        )
+                        Text(
+                            "HP : ${bebe.hp} / 100",
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.align(Alignment.End)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        LinearProgressIndicator(
+                            progress = { bebe.xp / 100f },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp),
+                            color = Color(0xFF3498DB)
+                        )
+                        Text(
+                            "XP : ${bebe.xp} / 100",
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.align(Alignment.End)
+                        )
+
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Transparent)
+                ) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = CardDefaults.cardElevation(8.dp)
+                    ) {
+                        Box {
+                            // 🔥 Image de fond qui remplit la carte
+                            Image(
+                                painter = painterResource(id = R.drawable.fond_pokemon),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp), // ajuste la hauteur si besoin
+                                contentScale = ContentScale.Crop // 🧠 pour qu'elle remplisse bien
+                            )
+
+                            // ✅ Contenu au-dessus de l’image
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(imageRes)
+                                        .decoderFactory(GifDecoder.Factory())
+                                        .build(),
+                                    contentDescription = "Bébé",
+                                    imageLoader = imageLoader,
+                                    modifier = Modifier.size(if (big) 140.dp else 80.dp)
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        bebe.name.uppercase(),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        "Niv. ${bebe.level}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color.White
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            "HP",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            "${bebe.hp} / 100",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White
+                                        )
+                                    }
+                                    LinearProgressIndicator(
+                                        progress = { bebe.hp.toFloat() / 100 },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(6.dp),
+                                        color = Color(0xFF2ECC71),
+                                        trackColor = Color.White
+                                    )
+
+                                    Spacer(modifier = Modifier.height(6.dp))
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            "XP",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            "${bebe.xp} / 100",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White
+                                        )
+                                    }
+                                    LinearProgressIndicator(
+                                        progress = { bebe.xp / 100f },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(6.dp),
+                                        color = Color(0xFF3498DB),
+                                        trackColor = Color.White
+                                    )
+                                }
+                            }
                         }
                     }
                 }
-            },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0)),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
-        if (horizontal) {
-            Row(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(imageRes)
-                        .decoderFactory(GifDecoder.Factory())
-                        .build(),
-                    contentDescription = "Bébé",
-                    imageLoader = imageLoader,
-                    modifier = Modifier.size(80.dp)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(bebe.name, style = MaterialTheme.typography.titleMedium)
-                    Text("Niveau : ${bebe.level}", style = MaterialTheme.typography.bodyMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LinearProgressIndicator(
-                        progress = { bebe.hp.toFloat() / 100 },
-                        modifier = Modifier.fillMaxWidth(),
-                        color = Color(0xFF4CAF50)
-                    )
-                    Text("HP : ${bebe.hp} / 100", style = MaterialTheme.typography.labelSmall)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    LinearProgressIndicator(
-                        progress = { bebe.xp / 100f }, // 100 XP max par niveau
-                        modifier = Modifier.fillMaxWidth(),
-                        color = Color(0xFF2196F3) // Couleur bleue pour l'XP
-                    )
-                    Text("XP : ${bebe.xp} / 100", style = MaterialTheme.typography.labelSmall)
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(imageRes)
-                        .decoderFactory(GifDecoder.Factory())
-                        .build(),
-                    contentDescription = "Bébé",
-                    imageLoader = imageLoader,
-                    modifier = Modifier.size(if (big) 140.dp else 80.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(bebe.name, style = MaterialTheme.typography.titleMedium)
-                Text("Niveau : ${bebe.level}", style = MaterialTheme.typography.bodyMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                LinearProgressIndicator(
-                    progress = { bebe.hp.toFloat() / 100 },
-                    modifier = Modifier.fillMaxWidth(),
-                    color = Color(0xFF4CAF50)
-                )
-                Text("HP : ${bebe.hp} / 100", style = MaterialTheme.typography.labelSmall)
-                Spacer(modifier = Modifier.height(4.dp))
-                LinearProgressIndicator(
-                    progress = { bebe.xp / 100f }, // 100 XP max par niveau
-                    modifier = Modifier.fillMaxWidth(),
-                    color = Color(0xFF2196F3) // Couleur bleue pour l'XP
-                )
-                Text("XP : ${bebe.xp} / 100", style = MaterialTheme.typography.labelSmall)
             }
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+fun calculerAgeHumain(dateNaissance: String): String {
+    return try {
+        val birth = LocalDate.parse(dateNaissance)
+        val today = LocalDate.now()
+        val period = Period.between(birth, today)
+
+        when {
+            period.years > 0 -> "${period.years} an(s)"
+            period.months > 0 -> "${period.months} mois"
+            else -> "${period.days} jour(s)"
+        }
+    } catch (e: Exception) {
+        ""
+    }
+}
 
 

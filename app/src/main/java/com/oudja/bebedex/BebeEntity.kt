@@ -10,5 +10,9 @@ data class BebeEntity(
     val gender: String,
     val level: Int = 1,
     val hp: Int = 100,
-    val xp: Int = 0
+    val xp: Int = 0,
+    val dateNaissance: String = "",
+    val heureNaissance: String = "",
+    val taille: Float = 50f,
+    val poids: Float = 3.5f
 )

@@ -36,7 +36,6 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun BebeDexTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -51,8 +50,8 @@ fun BebeDexTheme(
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
+        colorScheme = colorScheme,      // ✅ prend bien en compte le choix ci-dessus
+        typography = CustomTypography,  // ✅ applique ta police PressStart2P
         content = content
     )
 }

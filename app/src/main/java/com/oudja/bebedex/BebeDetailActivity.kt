@@ -161,29 +161,6 @@ data class CroissanceData(val datetime: String, val taille: Float, val poids: Fl
 val croissanceList = mutableStateListOf<CroissanceData>()
 
 
-@RequiresApi(Build.VERSION_CODES.O)
-fun saveGrowthData(context: Context, taille: Float, poids: Float) {
-    val prefs = context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE)
-    val gson = Gson()
-    val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-    val updatedList = croissanceList.toMutableList().apply { add(CroissanceData(now, taille, poids)) }
-    croissanceList.clear()
-    croissanceList.addAll(updatedList)
-    val json = gson.toJson(updatedList)
-    prefs.edit()
-        .putString("croissance_data", json)
-        .putFloat("taille", taille)
-        .putFloat("poids", poids)
-        .apply()
-}
-
-fun loadGrowthData(context: Context): Pair<Float, Float> {
-    val prefs = context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE)
-    val taille = prefs.getFloat("taille", 50f)
-    val poids = prefs.getFloat("poids", 3.5f)
-    return taille to poids
-}
-
 fun loadGrowthHistory(context: Context) {
     val prefs = context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE)
     val json = prefs.getString("croissance_data", null)
@@ -243,14 +220,13 @@ fun ProfilScreen(name: String, initialLevel: Int, initialXp: Int, onNavigate: (S
     val level = bebe.value?.level ?: 1
     val xp = bebe.value?.xp ?: 0
 
-    val (tailleInit, poidsInit) = loadGrowthData(context)
 
-    var birthDate by remember { mutableStateOf(LocalDate.now().toString()) }
-    var birthTime by remember { mutableStateOf("12:00") }
-    var taille by remember { mutableStateOf(tailleInit) }
-    var poids by remember { mutableStateOf(poidsInit) }
-    var tailleText by remember { mutableStateOf(tailleInit.toString()) }
-    var poidsText by remember { mutableStateOf(poidsInit.toString()) }
+    var birthDate by remember(bebe.value) { mutableStateOf(bebe.value?.dateNaissance ?: LocalDate.now().toString()) }
+    var birthTime by remember(bebe.value) { mutableStateOf(bebe.value?.heureNaissance ?: "12:00") }
+    var taille by remember(bebe.value) { mutableStateOf(bebe.value?.taille ?: 50f) }
+    var poids by remember(bebe.value) { mutableStateOf(bebe.value?.poids ?: 3.5f) }
+    var tailleText by remember(bebe.value) { mutableStateOf(taille.toString()) }
+    var poidsText by remember(bebe.value) { mutableStateOf(poids.toString()) }
     var isEditing by remember { mutableStateOf(false) }
 
     var showLevelUpScreen by remember { mutableStateOf(false) }
@@ -334,13 +310,26 @@ fun ProfilScreen(name: String, initialLevel: Int, initialXp: Int, onNavigate: (S
             )
 
             Spacer(modifier = Modifier.height(8.dp))
+            val scope = rememberCoroutineScope()
+
             Button(onClick = {
                 isEditing = false
-                saveGrowthData(context, taille, poids)
-                croissanceList.add(CroissanceData(LocalDate.now().toString(), taille, poids))
+                scope.launch {
+                    bebe.value?.let {
+                        val updated = it.copy(
+                            dateNaissance = birthDate,
+                            heureNaissance = birthTime,
+                            taille = taille,
+                            poids = poids
+                        )
+                        bebeDao.update(updated)
+                        bebe.value = updated
+                    }
+                }
             }, modifier = Modifier.fillMaxWidth()) {
                 Text("Valider les modifications")
             }
+
         } else {
             Text("Date de naissance : $birthDate")
             Text("Heure de naissance : $birthTime")

@@ -29,7 +29,7 @@ abstract class BebeDatabase : RoomDatabase() {
                     BebeDatabase::class.java,
                     "bebe_database"
                 )
-                    .fallbackToDestructiveMigration(true) // ⚠️ ça écrase tout, mais évite les plantages de migration
+                    .fallbackToDestructiveMigration(true) // ← conserve bien cette ligne
                     .build()
                 INSTANCE = instance
                 instance
