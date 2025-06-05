@@ -1,7 +1,6 @@
 // BebeDetailActivity.kt
-package com.oudja.bebedex
+package com.oudja.bebedex.features.profil
 
-import android.app.TimePickerDialog
 import android.content.Context
 import android.graphics.Paint
 import android.os.Build
@@ -12,7 +11,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -31,7 +29,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
@@ -46,8 +43,6 @@ import com.google.gson.reflect.TypeToken
 import com.oudja.bebedex.ui.theme.BebeDexTheme
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.min
@@ -65,27 +60,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
-import androidx.compose.runtime.key
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.*
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.ui.graphics.Shadow
-import com.example.bebedex.biberon.BiberonScreen
+import com.oudja.bebedex.features.biberon.BiberonScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -93,7 +74,11 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
+import com.oudja.bebedex.features.levelup.LevelUpScreen
 import com.oudja.bebedex.R
+import com.oudja.bebedex.data.BebeDatabase
+import com.oudja.bebedex.data.BebeEntity
+
 
 val pixelFontFamily = FontFamily(
     Font(R.font.press_start_2p)

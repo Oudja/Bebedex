@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.oudja.bebedex.ui.theme.BebeDexTheme
 import androidx.core.app.ActivityOptionsCompat
+import com.oudja.bebedex.data.BebeDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

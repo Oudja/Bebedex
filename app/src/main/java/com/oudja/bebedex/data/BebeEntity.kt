@@ -1,7 +1,9 @@
-package com.oudja.bebedex
+package com.oudja.bebedex.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.ColumnInfo
+
 
 @Entity
 data class BebeEntity(

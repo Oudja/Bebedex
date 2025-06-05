@@ -1,4 +1,4 @@
-package com.oudja.bebedex
+package com.oudja.bebedex.data
 
 import android.content.Context
 import androidx.room.Database
@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.oudja.bebedex.data.BebeEntity
 
 @Database(entities = [BebeEntity::class], version = 3, exportSchema = false)
 abstract class BebeDatabase : RoomDatabase() {

@@ -14,7 +14,27 @@
         android:theme="@style/Theme.BebeDex"
         tools:targetApi="31">
         <activity
-            android:name=".BebeDao"
+            android:name=".data.biberon.BiberonEntity"
+            android:exported="false"
+            android:label="@string/title_activity_biberon_entity"
+            android:theme="@style/Theme.BebeDex" />
+        <activity
+            android:name=".data.biberon.BiberonDao"
+            android:exported="false"
+            android:label="@string/title_activity_biberon_dao"
+            android:theme="@style/Theme.BebeDex" />
+        <activity
+            android:name=".data.biberon.BiberonDatabase"
+            android:exported="false"
+            android:label="@string/title_activity_biberon_database"
+            android:theme="@style/Theme.BebeDex" />
+        <activity
+            android:name=".features.profil.components.BebeCardHeader"
+            android:exported="false"
+            android:label="@string/title_activity_bebe_card_header"
+            android:theme="@style/Theme.BebeDex" />
+        <activity
+            android:name=".data.BebeDao"
             android:exported="false"
             android:label="@string/title_activity_bebe_dao"
             android:theme="@style/Theme.BebeDex" />
@@ -24,7 +44,7 @@
             android:label="@string/title_activity_bebe_entity"
             android:theme="@style/Theme.BebeDex" />
         <activity
-            android:name=".BebeDatabase"
+            android:name=".data.BebeDatabase"
             android:exported="false"
             android:label="@string/title_activity_bebe_database"
             android:theme="@style/Theme.BebeDex" />
@@ -60,7 +80,7 @@
             </intent-filter>
         </activity> <!-- Écran de détail d’un bébé -->
         <activity
-            android:name=".BebeDetailActivity"
+            android:name=".features.profil.BebeDetailActivity"
             android:exported="false"
             android:label="@string/title_activity_bebe_detail"
             android:theme="@style/Theme.BebeDex" /> <!-- Écran principal : liste des bébés -->

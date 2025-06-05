@@ -1,4 +1,4 @@
-package com.example.bebedex.biberon
+package com.oudja.bebedex.features.biberon
 
 import android.app.Application
 import android.app.TimePickerDialog
@@ -9,7 +9,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,47 +22,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.oudja.bebedex.data.biberon.BiberonDatabase
+import com.oudja.bebedex.data.biberon.BiberonDao
+import com.oudja.bebedex.data.biberon.Biberon
 
-@Entity(tableName = "biberons")
-data class Biberon(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val quantiteMl: Int,
-    val heure: Long
-)
 
-@Dao
-interface BiberonDao {
-    @Insert
-    suspend fun insert(biberon: Biberon)
-
-    @Query("DELETE FROM biberons")
-    suspend fun clearAll()
-
-    @Query("SELECT * FROM biberons ORDER BY heure DESC")
-    fun getAll(): Flow<List<Biberon>>
-
-    @Update
-    suspend fun update(biberon: Biberon)
-}
-
-@Database(entities = [Biberon::class], version = 1)
-abstract class BiberonDatabase : RoomDatabase() {
-    abstract fun biberonDao(): BiberonDao
-
-    companion object {
-        @Volatile private var INSTANCE: BiberonDatabase? = null
-
-        fun getDatabase(context: android.content.Context): BiberonDatabase {
-            return INSTANCE ?: synchronized(this) {
-                Room.databaseBuilder(
-                    context.applicationContext,
-                    BiberonDatabase::class.java,
-                    "biberon_database"
-                ).build().also { INSTANCE = it }
-            }
-        }
-    }
-}
 
 class BiberonRepository(private val dao: BiberonDao) {
     val biberons: Flow<List<Biberon>> = dao.getAll()

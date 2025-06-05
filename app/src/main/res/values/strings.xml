@@ -9,4 +9,8 @@
     <string name="title_activity_bebe_database">BebeDatabase</string>
     <string name="title_activity_bebe_entity">BebeEntity</string>
     <string name="title_activity_bebe_dao">BebeDao</string>
+    <string name="title_activity_bebe_card_header">BebeCardHeader</string>
+    <string name="title_activity_biberon_database">BiberonDatabase</string>
+    <string name="title_activity_biberon_dao">BiberonDao</string>
+    <string name="title_activity_biberon_entity">BiberonEntity</string>
 </resources>

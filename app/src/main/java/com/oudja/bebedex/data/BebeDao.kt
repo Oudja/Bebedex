@@ -1,6 +1,11 @@
-package com.oudja.bebedex
+package com.oudja.bebedex.data
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import com.oudja.bebedex.data.BebeEntity
 
 @Dao
 interface BebeDao {
@@ -10,7 +15,7 @@ interface BebeDao {
     @Query("SELECT * FROM BebeEntity WHERE name = :name LIMIT 1")
     suspend fun getByName(name: String): BebeEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insert(bebe: BebeEntity)
 
     @Update

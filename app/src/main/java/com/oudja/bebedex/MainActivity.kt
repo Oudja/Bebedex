@@ -1,6 +1,5 @@
 package com.oudja.bebedex
 
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -11,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.GifDecoder
@@ -42,7 +39,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.material3.*
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,7 +47,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import com.oudja.bebedex.R
+import com.oudja.bebedex.data.BebeDao
+import com.oudja.bebedex.data.BebeDatabase
+import com.oudja.bebedex.data.BebeEntity
+import com.oudja.bebedex.features.profil.BebeDetailActivity
 
 class MainActivity : ComponentActivity() {
     private lateinit var bebeDao: BebeDao

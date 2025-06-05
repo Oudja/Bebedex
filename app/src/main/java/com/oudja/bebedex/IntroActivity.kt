@@ -33,6 +33,8 @@ import androidx.core.app.ActivityOptionsCompat
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.GifDecoder
+import com.oudja.bebedex.data.BebeDatabase
+import com.oudja.bebedex.data.BebeEntity
 import com.oudja.bebedex.ui.theme.BebeDexTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.CoroutineScope
