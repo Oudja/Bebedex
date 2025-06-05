@@ -3,7 +3,6 @@ package com.oudja.bebedex
 
 import android.app.TimePickerDialog
 import android.content.Context
-import android.graphics.Insets.add
 import android.graphics.Paint
 import android.os.Build
 import android.os.Bundle
@@ -20,17 +19,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
@@ -70,22 +69,41 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.runtime.key
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.ui.graphics.Shadow
 import com.example.bebedex.biberon.BiberonScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
+import com.oudja.bebedex.R
+
+val pixelFontFamily = FontFamily(
+    Font(R.font.press_start_2p)
+)
+
+val pixelTextStyle = TextStyle(
+    fontFamily = pixelFontFamily,
+    fontSize = 10.sp,
+    lineHeight = 14.sp
+)
 
 
 
@@ -111,9 +129,21 @@ class BebeDetailActivity : ComponentActivity() {
         val xp = intent.getIntExtra("xp", 0)
         setContent {
             BebeDexTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF7E57C2),
+                                    Color(0xFF26A69A),
+                                    Color(0xFFFFF3E0)
+                                )
+                            )
+                        )
+                ) {
                     val navController = rememberNavController()
-                    AppNavigation(navController, name = name,level = level,  xp = xp)
+                    AppNavigation(navController, name = name, level = level, xp = xp)
                 }
             }
         }
@@ -185,8 +215,8 @@ fun XpBar(xp: Int, maxXp: Int = 100, modifier: Modifier = Modifier) {
         label = "xp-animation"
     )
 
-    val backgroundColor = Color(0xFFE0E0E0)
-    val progressColor = Color(0xFFEE8130) // orange XP style Pokémon
+    val backgroundColor = Color(0xFFB0BEC5)  // gris clair
+    val progressColor = Color(0xFF42A5F5)    // bleu Pokémon
 
     Box(
         modifier
@@ -220,8 +250,9 @@ fun ProfilScreen(name: String, initialLevel: Int, initialXp: Int, onNavigate: (S
     val level = bebe.value?.level ?: 1
     val xp = bebe.value?.xp ?: 0
 
-
-    var birthDate by remember(bebe.value) { mutableStateOf(bebe.value?.dateNaissance ?: LocalDate.now().toString()) }
+    var birthDate by remember(bebe.value) {
+        mutableStateOf(bebe.value?.dateNaissance ?: LocalDate.now().toString())
+    }
     var birthTime by remember(bebe.value) { mutableStateOf(bebe.value?.heureNaissance ?: "12:00") }
     var taille by remember(bebe.value) { mutableStateOf(bebe.value?.taille ?: 50f) }
     var poids by remember(bebe.value) { mutableStateOf(bebe.value?.poids ?: 3.5f) }
@@ -231,7 +262,6 @@ fun ProfilScreen(name: String, initialLevel: Int, initialXp: Int, onNavigate: (S
 
     var showLevelUpScreen by remember { mutableStateOf(false) }
 
-    // Calcul âge
     val age = try {
         val birth = LocalDate.parse(birthDate)
         val today = LocalDate.now()
@@ -241,7 +271,6 @@ fun ProfilScreen(name: String, initialLevel: Int, initialXp: Int, onNavigate: (S
         "Date invalide"
     }
 
-    // Afficher écran Level Up si besoin
     LaunchedEffect(level) {
         val lastSeenLevel = loadLastSeenLevel(context)
         if (level > lastSeenLevel) {
@@ -257,111 +286,115 @@ fun ProfilScreen(name: String, initialLevel: Int, initialXp: Int, onNavigate: (S
         return
     }
 
-    Column(modifier = Modifier.padding(24.dp)) {
-        AnimatedGif(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Transparent) // ou ta couleur de fond
+    ) {
+        Column(
             modifier = Modifier
-                .size(128.dp)
-                .align(Alignment.CenterHorizontally)
-        )
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center // ✅ centre verticalement si peu de contenu
+        ) {
+            // 🍼 Carte infos bébé
+            var showDialog by remember { mutableStateOf(false) }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("Nom : $name", style = MaterialTheme.typography.headlineSmall)
-        Text("Âge : $age", style = MaterialTheme.typography.bodyLarge)
-        Text("Niveau : $level", style = MaterialTheme.typography.bodyLarge)
-        Text("XP : $xp / 100", style = MaterialTheme.typography.bodyLarge)
+            if (bebe.value != null) {
+                val bebeData = bebe.value!!
 
-        XpBar(xp = xp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min)
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    BebeCardHeader(
+                        name = bebeData.name,
+                        gender = bebeData.gender,
+                        level = bebeData.level,
+                        modifier = Modifier.weight(1f)
+                    )
 
-        if (isEditing) {
-            OutlinedTextField(
-                value = birthDate,
-                onValueChange = { birthDate = it },
-                label = { Text("Date de naissance (yyyy-mm-dd)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            OutlinedTextField(
-                value = birthTime,
-                onValueChange = { birthTime = it },
-                label = { Text("Heure de naissance (hh:mm)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            OutlinedTextField(
-                value = tailleText,
-                onValueChange = {
-                    tailleText = it
-                    taille = it.toFloatOrNull() ?: 0f
-                },
-                label = { Text("Taille (cm)") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
-            )
-
-            OutlinedTextField(
-                value = poidsText,
-                onValueChange = {
-                    poidsText = it
-                    poids = it.toFloatOrNull() ?: 0f
-                },
-                label = { Text("Poids (kg)") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-            val scope = rememberCoroutineScope()
-
-            Button(onClick = {
-                isEditing = false
-                scope.launch {
-                    bebe.value?.let {
-                        val updated = it.copy(
-                            dateNaissance = birthDate,
-                            heureNaissance = birthTime,
-                            taille = taille,
-                            poids = poids
-                        )
-                        bebeDao.update(updated)
-                        bebe.value = updated
-                    }
+                    ResumeCard(
+                        age = age,
+                        birthDate = bebeData.dateNaissance,
+                        birthTime = bebeData.heureNaissance,
+                        taille = bebeData.taille.toString(),
+                        poids = bebeData.poids.toString(),
+                        xp = bebeData.xp,
+                        onEdit = { showDialog = true },
+                        modifier = Modifier.weight(1.4f)
+                    )
                 }
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text("Valider les modifications")
             }
 
-        } else {
-            Text("Date de naissance : $birthDate")
-            Text("Heure de naissance : $birthTime")
-            Text("Taille : ${tailleText} cm")
-            Text("Poids : ${poidsText} kg")
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { isEditing = true }, modifier = Modifier.fillMaxWidth()) {
-                Text("Modifier les informations")
+
+
+            if (showDialog) {
+                CustomEditDialog(
+                    birthDate = birthDate,
+                    onBirthDateChange = { birthDate = it },
+                    birthTime = birthTime,
+                    onBirthTimeChange = { birthTime = it },
+                    tailleText = tailleText,
+                    onTailleChange = {
+                        tailleText = it
+                        taille = it.toFloatOrNull() ?: 0f
+                    },
+                    poidsText = poidsText,
+                    onPoidsChange = {
+                        poidsText = it
+                        poids = it.toFloatOrNull() ?: 0f
+                    },
+                    onDismiss = { showDialog = false },
+                    onConfirm = {
+                        showDialog = false
+                        CoroutineScope(Dispatchers.IO).launch {
+                            bebe.value?.let {
+                                val updated = it.copy(
+                                    dateNaissance = birthDate,
+                                    heureNaissance = birthTime,
+                                    taille = taille,
+                                    poids = poids
+                                )
+                                bebeDao.update(updated)
+                                bebe.value = updated
+                            }
+                        }
+                    }
+                )
+            }
+
+
+
+            // 🧭 Menu navigation
+            Box(
+                modifier = Modifier
+                    .width(380.dp)
+                    .padding(vertical = 8.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFFC5E1E6))
+                    .border(3.dp, Color.White, RoundedCornerShape(16.dp))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    MenuButton("📊 Statistiques") { onNavigate("stats") }
+                    MenuButton("🧠 Compétences") { onNavigate("competences") }
+                    MenuButton("📈 Courbe de croissance") { onNavigate("courbe") }
+                    MenuButton("🍼 Suivi des biberons") { onNavigate("biberons") }
+                }
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { onNavigate("stats") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Voir les statistiques")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { onNavigate("competences") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Voir les compétences")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { onNavigate("courbe") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Courbes de croissance")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { onNavigate("biberons") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Suivi des biberons")
-        }
-
     }
 }
+
 
 fun saveLastSeenLevel(context: Context, level: Int) {
     val prefs = context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE)
@@ -675,8 +708,11 @@ fun CompetenceSelector(
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 filtered.take(5).forEach { competence ->
-                    Surface(
-                        tonalElevation = 2.dp,
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
@@ -689,7 +725,7 @@ fun CompetenceSelector(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(12.dp),
+                                .padding(vertical = 8.dp, horizontal = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
@@ -794,3 +830,242 @@ fun StatRadar(stats: BebeStats, modifier: Modifier = Modifier) {
         }
     }
 }
+
+@Composable
+fun MenuButton(text: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFFE6F2F5), // plus proche visuellement de C5E1E6
+            contentColor = Color.Black
+        ),
+        elevation = ButtonDefaults.buttonElevation(0.dp)
+    ) {
+        Text(text, style = pixelTextStyle)
+    }
+}
+
+
+@Composable
+fun BebeCardHeader(
+    name: String,
+    gender: String,
+    level: Int,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .heightIn(min = 180.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFC5E1E6)),
+        border = BorderStroke(3.dp, Color.White)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            AnimatedGif(modifier = Modifier.size(96.dp))
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.padding(top = 4.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(name, style = pixelTextStyle.copy(fontWeight = FontWeight.Bold))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    when (gender.lowercase()) {
+                        "fille" -> Text("♀", color = Color(0xFFE91E63), style = pixelTextStyle.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        "garçon", "garcon" -> Text("♂", color = Color(0xFF2196F3), style = pixelTextStyle.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                    }
+                }
+                Text("Niveau $level", style = pixelTextStyle)
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ResumeCard(
+    age: String,
+    birthDate: String,
+    birthTime: String,
+    taille: String,
+    poids: String,
+    xp: Int,
+    onEdit: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.heightIn(min = 200.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFC5E1E6)),
+        border = BorderStroke(3.dp, Color.White)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            GbaLabelWithEdit("RESUME", onEdit = onEdit)
+
+            Spacer(Modifier.height(8.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.Start // tu peux passer à CenterHorizontally si tu veux centrer le texte
+            ) {
+                val ageParts = age.split(", ").filterNot { it.contains("0 ") }
+                Text(ageParts.joinToString(" et "), style = pixelTextStyle)
+                Text("${birthDate.split("-").reversed().joinToString("/")} à $birthTime", style = pixelTextStyle)
+                Text("$taille cm", style = pixelTextStyle)
+                Text("$poids kg", style = pixelTextStyle)
+            }
+
+            XpBar(xp = xp, maxXp = 100, modifier = Modifier.padding(top = 12.dp))
+        }
+    }
+}
+
+
+@Composable
+fun GbaLabelWithEdit(text: String, onEdit: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF388E8E))
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text, style = pixelTextStyle.copy(color = Color.White))
+        IconButton(
+            onClick = onEdit,
+            modifier = Modifier.size(20.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Modifier",
+                tint = Color.White,
+                modifier = Modifier.size(14.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun GbaLabel(text: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF388E8E))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(text, style = pixelTextStyle.copy(color = Color.White))
+    }
+}
+
+@Composable
+fun CustomEditDialog(
+    birthDate: String,
+    onBirthDateChange: (String) -> Unit,
+    birthTime: String,
+    onBirthTimeChange: (String) -> Unit,
+    tailleText: String,
+    onTailleChange: (String) -> Unit,
+    poidsText: String,
+    onPoidsChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.Transparent,
+        confirmButton = {},
+        dismissButton = {},
+        text = {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFC5E1E6)),
+                border = BorderStroke(3.dp, Color.White)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    GbaLabel("MODIFIER")
+
+                    // 🍼 Date de naissance
+                    GbaDataRow("Date de naissance", birthDate) {
+                        onBirthDateChange(it)
+                    }
+
+                    // 🕒 Heure
+                    GbaDataRow("Heure de naissance", birthTime) {
+                        onBirthTimeChange(it)
+                    }
+
+                    // 📏 Taille
+                    GbaDataRow("Taille (cm)", tailleText) {
+                        onTailleChange(it)
+                    }
+
+                    // ⚖️ Poids
+                    GbaDataRow("Poids (kg)", poidsText) {
+                        onPoidsChange(it)
+                    }
+
+                    // Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Text(
+                            "Annuler",
+                            modifier = Modifier.clickable { onDismiss() },
+                            style = pixelTextStyle.copy(color = Color.DarkGray)
+                        )
+                        Text(
+                            "Enregistrer",
+                            modifier = Modifier.clickable { onConfirm() },
+                            style = pixelTextStyle.copy(color = Color.DarkGray)
+                        )
+                    }
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun GbaDataRow(label: String, value: String, onChange: (String) -> Unit) {
+    Column {
+        Text(label, style = pixelTextStyle.copy(color = Color.Black))
+        OutlinedTextField(
+            value = value,
+            onValueChange = onChange,
+            textStyle = pixelTextStyle,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Black,
+                unfocusedBorderColor = Color.Gray,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White
+            ),
+            shape = RoundedCornerShape(8.dp),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+

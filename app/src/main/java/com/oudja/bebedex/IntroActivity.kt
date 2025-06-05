@@ -147,7 +147,7 @@ fun IntroScreen(onFinish: () -> Unit) {
                                     imageLoader = imageLoader,
                                     modifier = Modifier
                                         .size(100.dp)
-                                        .clickable { gender = "garcon"; step = 2 }
+                                        .clickable { gender = "garçon"; step = 2 }
                                 )
                             }
                         }
