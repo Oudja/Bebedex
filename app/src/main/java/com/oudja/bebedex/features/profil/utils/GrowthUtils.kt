@@ -29,4 +29,15 @@ object GrowthUtils {
             .remove("poids")
             .apply()
     }
+
+    fun addGrowthEntry(context: Context, taille: Float, poids: Float) {
+        val datetime = java.time.LocalDate.now().toString()
+        val entry = CroissanceData(datetime, taille, poids)
+        croissanceList.add(entry)
+        // Sauvegarde
+        val prefs = context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE)
+        val gson = Gson()
+        val json = gson.toJson(croissanceList)
+        prefs.edit().putString("croissance_data", json).apply()
+    }
 }

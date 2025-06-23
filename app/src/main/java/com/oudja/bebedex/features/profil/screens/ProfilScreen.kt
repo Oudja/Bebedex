@@ -27,6 +27,7 @@ import java.time.LocalDate
 import java.time.Period
 import com.oudja.bebedex.features.profil.utils.ProfilStorageUtils.saveLastSeenLevel
 import com.oudja.bebedex.features.profil.utils.ProfilStorageUtils.loadLastSeenLevel
+import com.oudja.bebedex.features.profil.utils.GrowthUtils
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -153,6 +154,7 @@ fun ProfilScreen(name: String, initialLevel: Int, initialXp: Int, onNavigate: (S
                                 )
                                 bebeDao.update(updated)
                                 bebe.value = updated
+                                GrowthUtils.addGrowthEntry(context, taille, poids)
                             }
                         }
                     }
