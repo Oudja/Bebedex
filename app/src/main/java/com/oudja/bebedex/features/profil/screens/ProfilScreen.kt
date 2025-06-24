@@ -28,30 +28,25 @@ import java.time.Period
 import com.oudja.bebedex.features.profil.utils.ProfilStorageUtils.saveLastSeenLevel
 import com.oudja.bebedex.features.profil.utils.ProfilStorageUtils.loadLastSeenLevel
 import com.oudja.bebedex.features.profil.utils.GrowthUtils
+import com.oudja.bebedex.features.profil.data.BebeViewModel
+import androidx.compose.runtime.collectAsState
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ProfilScreen(name: String, initialLevel: Int, initialXp: Int, onNavigate: (String) -> Unit) {
+fun ProfilScreen(bebeViewModel: BebeViewModel, onNavigate: (String) -> Unit) {
     val context = LocalContext.current
-    val db = BebeDatabase.getDatabase(context)
-    val bebeDao = db.bebeDao()
-    val bebe = remember { mutableStateOf<BebeEntity?>(null) }
+    val bebeState by bebeViewModel.bebe.collectAsState()
+    val level = bebeState?.level ?: 1
+    val xp = bebeState?.xp ?: 0
 
-    LaunchedEffect(Unit) {
-        bebe.value = bebeDao.getByName(name)
+    var birthDate by remember(bebeState) {
+        mutableStateOf(bebeState?.dateNaissance ?: LocalDate.now().toString())
     }
-
-    val level = bebe.value?.level ?: 1
-    val xp = bebe.value?.xp ?: 0
-
-    var birthDate by remember(bebe.value) {
-        mutableStateOf(bebe.value?.dateNaissance ?: LocalDate.now().toString())
-    }
-    var birthTime by remember(bebe.value) { mutableStateOf(bebe.value?.heureNaissance ?: "12:00") }
-    var taille by remember(bebe.value) { mutableStateOf(bebe.value?.taille ?: 50f) }
-    var poids by remember(bebe.value) { mutableStateOf(bebe.value?.poids ?: 3.5f) }
-    var tailleText by remember(bebe.value) { mutableStateOf(taille.toString()) }
-    var poidsText by remember(bebe.value) { mutableStateOf(poids.toString()) }
+    var birthTime by remember(bebeState) { mutableStateOf(bebeState?.heureNaissance ?: "12:00") }
+    var taille by remember(bebeState) { mutableStateOf(bebeState?.taille ?: 50f) }
+    var poids by remember(bebeState) { mutableStateOf(bebeState?.poids ?: 3.5f) }
+    var tailleText by remember(bebeState) { mutableStateOf(taille.toString()) }
+    var poidsText by remember(bebeState) { mutableStateOf(poids.toString()) }
     var isEditing by remember { mutableStateOf(false) }
 
     var showLevelUpScreen by remember { mutableStateOf(false) }
@@ -95,8 +90,8 @@ fun ProfilScreen(name: String, initialLevel: Int, initialXp: Int, onNavigate: (S
         ) {
             var showDialog by remember { mutableStateOf(false) }
 
-            if (bebe.value != null) {
-                val bebeData = bebe.value!!
+            if (bebeState != null) {
+                val bebeData = bebeState!!
 
                 Row(
                     modifier = Modifier
@@ -145,16 +140,14 @@ fun ProfilScreen(name: String, initialLevel: Int, initialXp: Int, onNavigate: (S
                     onConfirm = {
                         showDialog = false
                         CoroutineScope(Dispatchers.IO).launch {
-                            bebe.value?.let {
+                            bebeState?.let {
                                 val updated = it.copy(
                                     dateNaissance = birthDate,
                                     heureNaissance = birthTime,
                                     taille = taille,
                                     poids = poids
                                 )
-                                bebeDao.update(updated)
-                                bebe.value = updated
-                                GrowthUtils.addGrowthEntry(context, taille, poids)
+                                bebeViewModel.updateBebe(updated)
                             }
                         }
                     }

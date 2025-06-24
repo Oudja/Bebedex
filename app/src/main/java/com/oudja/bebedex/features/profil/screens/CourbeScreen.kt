@@ -40,16 +40,42 @@ import com.oudja.bebedex.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Restore
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.MoreHoriz
+import com.oudja.bebedex.features.profil.utils.GrowthUtils
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.with
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.ui.text.font.FontWeight
 
+@OptIn(ExperimentalAnimationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CourbeScreen(onBack: () -> Unit) {
     val context = LocalContext.current
-
+    var showCustomMenu by remember { mutableStateOf(false) }
+    var showCustomConfirmReset by remember { mutableStateOf(false) }
+    var showCustomHistory by remember { mutableStateOf(false) }
+    var showBottomMenu by remember { mutableStateOf(false) }
+    var snackbarHostState = remember { SnackbarHostState() }
+    var selectedGraph by remember { mutableStateOf("taille") }
     LaunchedEffect(Unit) {
         loadGrowthHistory(context)
     }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -114,95 +140,340 @@ fun CourbeScreen(onBack: () -> Unit) {
                     }
                 }
                 Spacer(Modifier.height(24.dp))
-                // Carte courbes de croissance
-                Card(
-                    shape = RoundedCornerShape(20.dp),
-                    border = BorderStroke(4.dp, Color.White),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
+                // --- NOUVEAU : Boutons Taille / Poids ---
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Column(Modifier.padding(16.dp)) {
-                        // Titre taille
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(bottom = 4.dp)
+                    Button(
+                        onClick = { selectedGraph = "taille" },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (selectedGraph == "taille") Color(0xFF1976D2) else Color(0xFFE6F2F5),
+                            contentColor = if (selectedGraph == "taille") Color.White else Color.Black
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(0.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Taille", style = pixelTextStyle.copy(fontWeight = if (selectedGraph == "taille") FontWeight.Bold else FontWeight.Normal))
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Button(
+                        onClick = { selectedGraph = "poids" },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (selectedGraph == "poids") Color(0xFFD32F2F) else Color(0xFFE6F2F5),
+                            contentColor = if (selectedGraph == "poids") Color.White else Color.Black
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(0.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Poids", style = pixelTextStyle.copy(fontWeight = if (selectedGraph == "poids") FontWeight.Bold else FontWeight.Normal))
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+                // --- NOUVEAU : AnimatedContent pour le graphique ---
+                AnimatedContent(
+                    targetState = selectedGraph,
+                    transitionSpec = {
+                        (slideInHorizontally { if (targetState == "taille") -it else it } + fadeIn()) with
+                        (slideOutHorizontally { if (targetState == "taille") it else -it } + fadeOut())
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { graph ->
+                    if (graph == "taille") {
+                        Card(
+                            shape = RoundedCornerShape(20.dp),
+                            border = BorderStroke(4.dp, Color.White),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.regle),
-                                contentDescription = "Icône règle pixel art",
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text("Taille (cm)", style = pixelTextStyle.copy(fontSize = 15.sp))
+                            Column(Modifier.padding(16.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.regle),
+                                        contentDescription = "Icône règle pixel art",
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Taille (cm)", style = pixelTextStyle.copy(fontSize = 15.sp))
+                                }
+                                PokemonLineChart(
+                                    data = croissanceList.map { it.datetime to it.taille },
+                                    color = Color(0xFF1976D2),
+                                    axisColor = Color(0xFF1976D2),
+                                    unit = "",
+                                    alignLeft = true
+                                )
+                            }
                         }
-                        PokemonLineChart(
-                            data = croissanceList.map { it.datetime to it.taille },
-                            color = Color(0xFF1976D2),
-                            axisColor = Color(0xFF1976D2),
-                            unit = "",
-                            alignLeft = true
-                        )
-                        Spacer(Modifier.height(24.dp))
-                        // Titre poids
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(bottom = 4.dp)
+                    } else {
+                        Card(
+                            shape = RoundedCornerShape(20.dp),
+                            border = BorderStroke(4.dp, Color.White),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.balance),
-                                contentDescription = "Icône balance pixel art",
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text("Poids (kg)", style = pixelTextStyle.copy(fontSize = 15.sp))
+                            Column(Modifier.padding(16.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.balance),
+                                        contentDescription = "Icône balance pixel art",
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Poids (kg)", style = pixelTextStyle.copy(fontSize = 15.sp))
+                                }
+                                PokemonLineChart(
+                                    data = croissanceList.map { it.datetime to it.poids },
+                                    color = Color(0xFFD32F2F),
+                                    axisColor = Color(0xFFD32F2F),
+                                    unit = "",
+                                    alignLeft = true
+                                )
+                            }
                         }
-                        PokemonLineChart(
-                            data = croissanceList.map { it.datetime to it.poids },
-                            color = Color(0xFFD32F2F),
-                            axisColor = Color(0xFFD32F2F),
-                            unit = "",
-                            alignLeft = true
-                        )
                     }
                 }
             }
             Spacer(Modifier.height(32.dp))
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+        }
+        // Ligne de boutons flottants en bas (gauche et droite)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+                .align(Alignment.BottomCenter),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FloatingActionButton(
+                onClick = onBack,
+                shape = RoundedCornerShape(50),
+                containerColor = Color(0xFF7EC4CF),
+                contentColor = Color.White,
+                elevation = FloatingActionButtonDefaults.elevation(8.dp),
+                modifier = Modifier.size(56.dp)
             ) {
-                FloatingActionButton(
-                    onClick = onBack,
-                    shape = RoundedCornerShape(50),
-                    containerColor = Color(0xFF7EC4CF),
-                    contentColor = Color.White,
-                    elevation = FloatingActionButtonDefaults.elevation(8.dp),
-                    modifier = Modifier.size(56.dp)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Retour", modifier = Modifier.size(28.dp))
+            }
+            FloatingActionButton(
+                onClick = { showBottomMenu = true },
+                shape = RoundedCornerShape(50),
+                containerColor = Color(0xFF7EC4CF),
+                contentColor = Color.White,
+                elevation = FloatingActionButtonDefaults.elevation(8.dp),
+                modifier = Modifier.size(56.dp)
+            ) {
+                Icon(Icons.Default.MoreHoriz, contentDescription = "Menu")
+            }
+        }
+        // --- Bottom sheet custom menu AVEC ANIMATION ---
+
+        // 1. Fond (scrim) qui fade in/out
+        AnimatedVisibility(
+            visible = showBottomMenu,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color(0x88000000))
+                    .clickable(
+                        onClick = { showBottomMenu = false },
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    )
+            )
+        }
+
+        // 2. Menu (Card) qui slide in/out from bottom
+        AnimatedVisibility(
+            visible = showBottomMenu,
+            enter = slideInVertically(initialOffsetY = { it }),
+            exit = slideOutVertically(targetOffsetY = { it }),
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            Card(
+                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                border = BorderStroke(3.dp, Color.White),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
+                elevation = CardDefaults.cardElevation(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 0.dp)
+                    .heightIn(min = 180.dp)
+            ) {
+                Column(
+                    Modifier
+                        .padding(top = 24.dp, bottom = 32.dp, start = 24.dp, end = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Retour", modifier = Modifier.size(28.dp))
-                }
-                Button(
-                    onClick = {
-                        croissanceList.clear()
-                        context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE).edit()
-                            .remove("croissance_data")
-                            .remove("taille")
-                            .remove("poids")
-                            .apply()
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7EC4CF)),
-                    border = BorderStroke(2.dp, Color.White),
-                    modifier = Modifier.height(44.dp)
-                ) {
-                    Icon(Icons.Default.Delete, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Réinitialiser", style = pixelTextStyle)
+                    Box(
+                        Modifier
+                            .width(40.dp)
+                            .height(5.dp)
+                            .background(Color.LightGray, RoundedCornerShape(2.dp))
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            showBottomMenu = false
+                            showCustomConfirmReset = true
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7EC4CF)),
+                        elevation = ButtonDefaults.buttonElevation(6.dp)
+                    ) {
+                        Icon(Icons.Default.Restore, contentDescription = null, tint = Color.White)
+                        Spacer(Modifier.width(12.dp))
+                        Text("Réinitialiser", style = pixelTextStyle.copy(color = Color.White))
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            showBottomMenu = false
+                            showCustomHistory = true
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                        elevation = ButtonDefaults.buttonElevation(6.dp)
+                    ) {
+                        Icon(Icons.Default.History, contentDescription = null, tint = Color.White)
+                        Spacer(Modifier.width(12.dp))
+                        Text("Historique", style = pixelTextStyle.copy(color = Color.White))
+                    }
                 }
             }
-            Spacer(Modifier.height(12.dp))
+        }
+        // Popup custom de confirmation de reset
+        if (showCustomConfirmReset) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color(0x88000000))
+                    .clickable(onClick = { showCustomConfirmReset = false }, indication = null, interactionSource = remember { MutableInteractionSource() })
+            ) {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(3.dp, Color.White),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE6F2F5)),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .width(320.dp)
+                ) {
+                    Column(
+                        Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Confirmation", style = pixelTextStyle.copy(fontSize = 18.sp))
+                        Spacer(Modifier.height(12.dp))
+                        Text("Es-tu sûr de vouloir réinitialiser toutes les données de croissance ?", style = pixelTextStyle)
+                        Spacer(Modifier.height(24.dp))
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Text(
+                                "Non",
+                                style = pixelTextStyle.copy(color = Color.DarkGray),
+                                modifier = Modifier.clickable { showCustomConfirmReset = false }
+                            )
+                            Text(
+                                "Oui",
+                                style = pixelTextStyle.copy(color = Color(0xFFD32F2F)),
+                                modifier = Modifier.clickable {
+                                    croissanceList.clear()
+                                    context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE).edit()
+                                        .remove("croissance_data")
+                                        .remove("taille")
+                                        .remove("poids")
+                                        .apply()
+                                    showCustomConfirmReset = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        // Popup custom Historique
+        if (showCustomHistory) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color(0x88000000))
+                    .clickable(onClick = { showCustomHistory = false }, indication = null, interactionSource = remember { MutableInteractionSource() })
+            ) {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(3.dp, Color.White),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE6F2F5)),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .width(340.dp)
+                        .heightIn(max = 400.dp)
+                ) {
+                    Column(
+                        Modifier
+                            .padding(20.dp)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Historique des mesures", style = pixelTextStyle.copy(fontSize = 18.sp))
+                        Spacer(Modifier.height(12.dp))
+                        if (croissanceList.isEmpty()) {
+                            Text("Aucune donnée enregistrée.", style = pixelTextStyle)
+                        } else {
+                            croissanceList.forEach {
+                                Card(
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = BorderStroke(1.dp, Color(0xFFB3E5FC)),
+                                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        "${it.datetime} : ${it.taille} cm, ${it.poids} kg",
+                                        style = pixelTextStyle,
+                                        modifier = Modifier.padding(8.dp)
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            "Fermer",
+                            style = pixelTextStyle.copy(color = Color(0xFFD32F2F)),
+                            modifier = Modifier.clickable { showCustomHistory = false }
+                        )
+                    }
+                }
+            }
+        }
+        // Snackbar pour feedback si besoin
+        Box(modifier = Modifier.fillMaxSize()) {
+            SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
         }
     }
 }

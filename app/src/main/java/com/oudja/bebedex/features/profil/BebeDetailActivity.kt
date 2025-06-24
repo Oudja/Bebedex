@@ -31,6 +31,10 @@ import com.oudja.bebedex.features.profil.screens.CompetencesScreen
 import com.oudja.bebedex.features.profil.screens.CourbeScreen
 import com.oudja.bebedex.features.profil.screens.ProfilScreen
 import com.oudja.bebedex.features.profil.screens.StatScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
+import com.oudja.bebedex.features.profil.data.BebeViewModel
+import androidx.compose.ui.platform.LocalContext
 
 
 val pixelFontFamily = FontFamily(
@@ -93,15 +97,24 @@ class BebeDetailActivity : ComponentActivity() {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(navController: NavHostController, name: String, level: Int, xp: Int) {
+    val context = LocalContext.current
+    val bebeViewModel: BebeViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return BebeViewModel(context.applicationContext as android.app.Application, name) as T
+            }
+        }
+    )
     NavHost(navController = navController, startDestination = "profil") {
         composable("profil") {
-            ProfilScreen(name = name, initialLevel = level, initialXp = xp, onNavigate = { navController.navigate(it) })
+            ProfilScreen(bebeViewModel = bebeViewModel, onNavigate = { navController.navigate(it) })
         }
         composable("stats") {
             StatScreen(onBack = { navController.popBackStack() })
         }
         composable("competences") {
-            CompetencesScreen(name = name, onBack = { navController.popBackStack() })
+            CompetencesScreen(bebeViewModel = bebeViewModel, onBack = { navController.popBackStack() })
         }
         composable("courbe") {
             CourbeScreen(onBack = { navController.popBackStack() })
@@ -109,6 +122,5 @@ fun AppNavigation(navController: NavHostController, name: String, level: Int, xp
         composable("biberons") {
             BiberonScreen(onBack = { navController.popBackStack() })
         }
-
     }
 }

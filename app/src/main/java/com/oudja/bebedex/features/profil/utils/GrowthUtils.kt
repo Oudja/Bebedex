@@ -40,4 +40,24 @@ object GrowthUtils {
         val json = gson.toJson(croissanceList)
         prefs.edit().putString("croissance_data", json).apply()
     }
+
+    // Ajout d'une sauvegarde complète de l'historique
+    fun backupFullHistory(context: Context) {
+        val prefs = context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE)
+        val gson = Gson()
+        val json = gson.toJson(croissanceList)
+        prefs.edit().putString("croissance_data_backup", json).apply()
+    }
+
+    fun restoreFullHistory(context: Context) {
+        val prefs = context.getSharedPreferences("bebedex_prefs", Context.MODE_PRIVATE)
+        val json = prefs.getString("croissance_data_backup", null)
+        val gson = Gson()
+        val type = object : TypeToken<List<CroissanceData>>() {}.type
+        val list = gson.fromJson<List<CroissanceData>>(json, type) ?: emptyList()
+        croissanceList.clear()
+        croissanceList.addAll(list)
+        // Sauvegarde dans la liste principale
+        prefs.edit().putString("croissance_data", gson.toJson(list)).apply()
+    }
 }

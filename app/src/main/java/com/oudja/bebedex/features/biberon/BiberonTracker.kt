@@ -49,6 +49,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 class BiberonRepository(private val dao: BiberonDao) {
     val biberons: Flow<List<Biberon>> = dao.getAll()
@@ -178,6 +182,7 @@ fun BiberonScreen(viewModel: BiberonViewModel = viewModel(), onBack: () -> Unit 
     var editQuantite by remember { mutableStateOf("") }
     var editHeure by remember { mutableStateOf("Heure") }
     var editHourCal by remember { mutableStateOf<Calendar?>(null) }
+    var showConfirmReset by remember { mutableStateOf(false) }
 
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val hourFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
@@ -283,17 +288,6 @@ fun BiberonScreen(viewModel: BiberonViewModel = viewModel(), onBack: () -> Unit 
                         Spacer(Modifier.width(8.dp))
                         Text("Ajouter")
                     }
-                    Spacer(Modifier.height(12.dp))
-                    Button(
-                        onClick = { viewModel.resetAll() },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8A80))
-                    ) {
-                        Icon(Icons.Default.Delete, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Réinitialiser")
-                    }
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -356,11 +350,15 @@ fun BiberonScreen(viewModel: BiberonViewModel = viewModel(), onBack: () -> Unit 
                 }
             }
             Spacer(Modifier.height(16.dp))
-            Box(
+        }
+        Box(modifier = Modifier.fillMaxSize()) {
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 24.dp, bottom = 24.dp),
-                    contentAlignment = Alignment.BottomStart
+                    .padding(24.dp)
+                    .align(Alignment.BottomCenter),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 FloatingActionButton(
                     onClick = onBack,
@@ -371,6 +369,16 @@ fun BiberonScreen(viewModel: BiberonViewModel = viewModel(), onBack: () -> Unit 
                     modifier = Modifier.size(56.dp)
                 ) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Retour", modifier = Modifier.size(28.dp))
+                }
+                FloatingActionButton(
+                    onClick = { showConfirmReset = true },
+                    shape = RoundedCornerShape(50),
+                    containerColor = Color(0xFFFF8A80),
+                    contentColor = Color.White,
+                    elevation = FloatingActionButtonDefaults.elevation(8.dp),
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = "Réinitialiser", modifier = Modifier.size(28.dp))
                 }
             }
         }
@@ -418,5 +426,56 @@ fun BiberonScreen(viewModel: BiberonViewModel = viewModel(), onBack: () -> Unit 
                 editingBiberon = null
             }
         )
+    }
+
+    // POPUP de confirmation custom
+    AnimatedVisibility(
+        visible = showConfirmReset,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color(0x88000000))
+                .clickable(onClick = { showConfirmReset = false }, indication = null, interactionSource = remember { MutableInteractionSource() })
+        ) {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(3.dp, Color.White),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFE6F2F5)),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .width(320.dp)
+            ) {
+                Column(
+                    Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Confirmation", style = pixelTextStyle.copy(fontSize = 18.sp))
+                    Spacer(Modifier.height(12.dp))
+                    Text("Es-tu sûr de vouloir réinitialiser tous les biberons ?", style = pixelTextStyle)
+                    Spacer(Modifier.height(24.dp))
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Text(
+                            "Non",
+                            style = pixelTextStyle.copy(color = Color.DarkGray),
+                            modifier = Modifier.clickable { showConfirmReset = false }
+                        )
+                        Text(
+                            "Oui",
+                            style = pixelTextStyle.copy(color = Color(0xFFD32F2F)),
+                            modifier = Modifier.clickable {
+                                viewModel.resetAll()
+                                showConfirmReset = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
     }
 }

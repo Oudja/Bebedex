@@ -31,18 +31,22 @@ object CompetenceStorageUtils {
         val inputStream = context.resources.openRawResource(R.raw.competences)
         val reader = BufferedReader(InputStreamReader(inputStream))
 
+        var isFirstLine = true
         reader.useLines { lines ->
             lines.forEach { line ->
-                val parts = line.split(";")
-                if (parts.size >= 1) {
+                val parts = line.split(",")
+                if (isFirstLine) {
+                    isFirstLine = false // skip header
+                } else if (parts.size >= 2) {
                     val nom = parts[0].trim()
+                    val theme = parts[1].trim()
+                    val xp = parts.getOrNull(2)?.trim()?.toIntOrNull() ?: 10
                     if (nom.isNotEmpty()) {
-                        competences.add(Competence(nom = nom))
+                        competences.add(Competence(nom = nom, theme = theme, xp = xp))
                     }
                 }
             }
         }
-
         return competences
     }
 
