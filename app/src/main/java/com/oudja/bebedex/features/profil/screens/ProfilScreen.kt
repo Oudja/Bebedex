@@ -148,6 +148,7 @@ fun ProfilScreen(bebeViewModel: BebeViewModel, onNavigate: (String) -> Unit) {
                                     poids = poids
                                 )
                                 bebeViewModel.updateBebe(updated)
+                                GrowthUtils.addGrowthEntry(context, taille, poids)
                             }
                         }
                     }

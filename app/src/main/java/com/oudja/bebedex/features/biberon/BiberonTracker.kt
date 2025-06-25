@@ -183,6 +183,7 @@ fun BiberonScreen(viewModel: BiberonViewModel = viewModel(), onBack: () -> Unit 
     var editHeure by remember { mutableStateOf("Heure") }
     var editHourCal by remember { mutableStateOf<Calendar?>(null) }
     var showConfirmReset by remember { mutableStateOf(false) }
+    var typeAlimentation by remember { mutableStateOf("lait maternisé") }
 
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val hourFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
@@ -230,16 +231,40 @@ fun BiberonScreen(viewModel: BiberonViewModel = viewModel(), onBack: () -> Unit 
                     modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    OutlinedTextField(
-                        value = quantite,
-                        onValueChange = { quantite = it },
-                        label = { Text("Quantité (ml)") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        Button(
+                            onClick = { typeAlimentation = "allaitement" },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (typeAlimentation == "allaitement") Color(0xFF7EC4CF) else Color(0xFFE6F2F5),
+                                contentColor = if (typeAlimentation == "allaitement") Color.White else Color.Black
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f)
+                        ) { Text("Allaitement", style = pixelTextStyle) }
+                        Spacer(Modifier.width(8.dp))
+                        Button(
+                            onClick = { typeAlimentation = "lait maternisé" },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (typeAlimentation == "lait maternisé") Color(0xFF7EC4CF) else Color(0xFFE6F2F5),
+                                contentColor = if (typeAlimentation == "lait maternisé") Color.White else Color.Black
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f)
+                        ) { Text("Lait maternisé", style = pixelTextStyle) }
+                    }
                     Spacer(Modifier.height(12.dp))
+                    if (typeAlimentation == "lait maternisé") {
+                        OutlinedTextField(
+                            value = quantite,
+                            onValueChange = { quantite = it },
+                            label = { Text("Quantité (ml)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(12.dp))
+                    }
                     Button(
                         onClick = {
                             val cal = Calendar.getInstance()
@@ -272,15 +297,21 @@ fun BiberonScreen(viewModel: BiberonViewModel = viewModel(), onBack: () -> Unit 
                     Button(
                         onClick = {
                             val heureValid = selectedHour?.timeInMillis ?: System.currentTimeMillis()
-                            quantite.toIntOrNull()?.takeIf { it > 0 }?.let {
-                                viewModel.ajouterBiberon(it, heureValid)
-                                quantite = ""
+                            if (typeAlimentation == "lait maternisé") {
+                                quantite.toIntOrNull()?.takeIf { it > 0 }?.let {
+                                    viewModel.ajouterBiberon(it, heureValid)
+                                    quantite = ""
+                                    heureTexte = "Heure"
+                                    selectedHour = null
+                                }
+                            } else if (typeAlimentation == "allaitement") {
+                                viewModel.ajouterBiberon(-1, heureValid)
                                 heureTexte = "Heure"
                                 selectedHour = null
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = quantite.isNotBlank(),
+                        enabled = (typeAlimentation == "lait maternisé" && quantite.isNotBlank()) || typeAlimentation == "allaitement",
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8AFF80))
                     ) {
@@ -299,10 +330,11 @@ fun BiberonScreen(viewModel: BiberonViewModel = viewModel(), onBack: () -> Unit 
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 grouped.forEach { (date, entries) ->
-                    val total = entries.sumOf { it.quantiteMl }
+                    val total = entries.filter { it.quantiteMl != -1 }.sumOf { it.quantiteMl }
                     item {
+                        val totalText = if (entries.any { it.quantiteMl != -1 }) "$date  •  Total : ${total} mL" else date
                         Text(
-                            text = "$date  •  Total : ${total} mL",
+                            text = totalText,
                             style = pixelTextStyle.copy(fontSize = 11.sp),
                             color = Color(0xFF2D2D2D),
                             modifier = Modifier.padding(vertical = 4.dp)
@@ -324,7 +356,7 @@ fun BiberonScreen(viewModel: BiberonViewModel = viewModel(), onBack: () -> Unit 
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "${hourFormat.format(Date(biberon.heure))} - ${biberon.quantiteMl} mL",
+                                    text = if (biberon.quantiteMl == -1) "${hourFormat.format(Date(biberon.heure))} - Allaitement" else "${hourFormat.format(Date(biberon.heure))} - ${biberon.quantiteMl} mL",
                                     style = pixelTextStyle.copy(fontSize = 10.sp),
                                     color = Color(0xFF2D2D2D),
                                     modifier = Modifier.weight(1f)
